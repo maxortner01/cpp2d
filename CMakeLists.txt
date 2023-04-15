@@ -6,3 +6,4 @@ project(main)
 add_subdirectory(extern/gl3w)
 add_subdirectory(extern/glfw)
 
+add_subdirectory(src)
