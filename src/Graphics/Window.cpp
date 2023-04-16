@@ -1,9 +1,3 @@
-#include <CPP2D/Graphics.h>
-
-#include <GLFW/glfw3.h>
-
-#include <iostream>
-
 namespace cpp2d
 {
     Window::Window(const uint32_t& width, const uint32_t& height, const char* title)
@@ -23,8 +17,6 @@ namespace cpp2d
             setState(WindowState::glfwWindowCreateFailed);
             return;
         }
-
-        std::cout << "hello\n";
 
         glfwMakeContextCurrent(_window_instance);
 

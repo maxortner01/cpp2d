@@ -9,10 +9,12 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
+set (CMAKE_CXX_STANDARD 11)
+
 # The necissary include directories
 include_directories(
     ${CMAKE_SOURCE_DIR}/include 
-    ${CMAKE_SOURCE_DIR}/build/extern/gl3w/include 
+    ${CMAKE_SOURCE_DIR}/extern/glew/include 
     ${CMAKE_SOURCE_DIR}/extern/glfw/include
 )
 
@@ -30,6 +32,6 @@ find_library(OPENGL OpenGL)
 find_library(IOKIT  IOKit)
 
 # Include the main source files as well as the retreived GL files for gl3w
-add_executable(cpp2d ${SOURCES} ${CMAKE_SOURCE_DIR}/build/extern/gl3w/src/gl3w.c)
+add_executable(cpp2d ${SOURCES} ${CMAKE_SOURCE_DIR}/extern/glew/src/glew.c)
 
 target_link_libraries(cpp2d glfw3 ${COCOA} ${OPENGL} ${IOKIT})

@@ -1,16 +1,22 @@
 #include <iostream>
-#include <GL/gl3w.h>
-#include <GLFW/glfw3.h>
+
+#include <vector>
 
 #include <CPP2D/Graphics.h>
 
 int main()
 {
-    cpp2d::Window window(640, 360, "hello");
+    cpp2d::DrawWindow window(640, 360, "hello");
+
+    cpp2d::Quad quad;
+
+    cpp2d::QuadRenderer renderer;
 
     while (window.isOpen())
     {
         window.pollEvent();
+        
+        renderer.render(window, quad);
 
         window.display();
     }
