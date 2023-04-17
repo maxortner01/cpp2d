@@ -32,7 +32,7 @@ namespace cpp2d
     {
         // Bind surface or whatever
         _quad.bind();
-        //_quad[0].bind();
-        glDrawElements(GL_TRIANGLES, _quad.getIndexCount(), GL_UNSIGNED_INT, _quad.getIndices());
+        _quad[0].bind();
+        glDrawElements(GL_TRIANGLES, _quad.getIndexCount(), GL_UNSIGNED_INT, 0);
     }
 }

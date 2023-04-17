@@ -1,5 +1,6 @@
 #include <CPP2D/Graphics.h>
 
+#include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -19,6 +20,9 @@ namespace cpp2d
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         GLFWwindow* _window_instance = glfwCreateWindow(width, height, title, NULL, NULL);
 
+        int32_t _width, _height;
+        glfwGetFramebufferSize(_window_instance, &_width, &_height);
+
         if (!_window_instance)
         {
             setState(WindowState::glfwWindowCreateFailed);
@@ -28,6 +32,7 @@ namespace cpp2d
         glfwMakeContextCurrent(_window_instance);
 
         GraphicsInstance::get().init();
+        glViewport(0, 0, _width, _height);
 
         _window = _window_instance;
         setState(WindowState::Success);

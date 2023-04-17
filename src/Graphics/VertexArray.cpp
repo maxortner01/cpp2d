@@ -5,18 +5,18 @@
 namespace cpp2d
 {
     VertexArray::VertexArray(const uint32_t& bufferCount) :
-        buffers(nullptr), _buffer_ids(nullptr), indices(nullptr), _index_count(0), _buffer_count(bufferCount)
+        buffers(nullptr), _buffer_ids(nullptr), _index_count(0), _buffer_count(bufferCount)
     {
         GraphicsInstance::get().init();
         glGenVertexArrays(1, &_id);
 
-        buffers     = (GraphicsBuffer**)std::malloc(sizeof(void*) * bufferCount);
-        _buffer_ids = (uint32_t*)       std::malloc(sizeof(void*) * bufferCount);
+        buffers     = (GraphicsBuffer**)std::malloc(sizeof(void*) * (bufferCount + 1));
+        _buffer_ids = (uint32_t*)       std::malloc(sizeof(void*) * (bufferCount + 1));
 
         bind();
-        glGenBuffers(bufferCount, _buffer_ids);
+        glGenBuffers(bufferCount + 1, _buffer_ids);
 
-        for (int i = 0; i < bufferCount; i++)
+        for (int i = 0; i < bufferCount + 1; i++)
             buffers[i] = new GraphicsBuffer(_buffer_ids[i], _id);
     }
 
@@ -27,34 +27,26 @@ namespace cpp2d
 
         if (buffers)
         {
-            for (int i = 0; i < _buffer_count; i++)
+            for (int i = 0; i < _buffer_count + 1; i++)
                 delete buffers[i];
 
-            std::memset(buffers, 0, sizeof(void*) * _buffer_count);
+            std::memset(buffers, 0, sizeof(void*) * (_buffer_count + 1));
          
             std::free(buffers);
             buffers = nullptr;
-        }
-
-        if (indices)
-        {
-            std::free(indices);
-            indices = nullptr;
         }
     }
 
     void VertexArray::bind() const
     {
         glBindVertexArray(_id);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffer_ids[_buffer_count]);
     }
 
-    void VertexArray::setIndices(const uint32_t* const indexData, const size_t& count)
+    void VertexArray::setIndices(const uint32_t* const indexData, const uint32_t& count)
     {
         _index_count = count;
-        if (indices) std::free(indices);
-
-        indices = (uint32_t*)std::malloc(sizeof(uint32_t) * count);
-        std::memcpy(indices, indexData, count * sizeof(uint32_t));
+        buffers[_buffer_count]->setData(indexData, sizeof(uint32_t) * count);
     }
 
     uint32_t VertexArray::getIndexCount() const
@@ -64,7 +56,8 @@ namespace cpp2d
 
     const uint32_t* const VertexArray::getIndices() const
     {
-        return indices;
+        // do a glmap to get data
+        return nullptr;
     }
 
     GraphicsBuffer& VertexArray::operator[](const uint32_t& index) const

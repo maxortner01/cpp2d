@@ -9,7 +9,7 @@ namespace cpp2d
     {
         // Data
         GraphicsBuffer** buffers;
-        uint32_t* indices;
+        //uint32_t* indices;
 
         // Reference info
         const uint32_t _buffer_count;
@@ -23,9 +23,11 @@ namespace cpp2d
 
         void bind() const;
 
-        void     setIndices(const uint32_t* const indexData, const size_t& count);
+        void     setIndices(const uint32_t* const indexData, const uint32_t& count);
         uint32_t getIndexCount() const;
         const uint32_t* const getIndices() const;
+
+        const GraphicsBuffer* const getIndexBuffer() const;
 
         GraphicsBuffer& operator[](const uint32_t& index) const;
     };
