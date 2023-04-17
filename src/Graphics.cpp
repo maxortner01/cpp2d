@@ -14,3 +14,5 @@
 #include "./Graphics/GraphicsBuffer.cpp"
 #include "./Graphics/DrawWindow.cpp"
 #include "./Graphics/QuadRenderer.cpp"
+#include "./Graphics/Transform2D.cpp"
+#include "./Graphics/Shader.cpp"

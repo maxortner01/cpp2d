@@ -1,3 +1,7 @@
+#include <CPP2D/Graphics.h>
+
+#include <GL/glew.h>
+
 namespace cpp2d
 {
     VertexArray::VertexArray(const uint32_t& bufferCount) :
@@ -9,6 +13,7 @@ namespace cpp2d
         buffers     = (GraphicsBuffer**)std::malloc(sizeof(void*) * bufferCount);
         _buffer_ids = (uint32_t*)       std::malloc(sizeof(void*) * bufferCount);
 
+        bind();
         glGenBuffers(bufferCount, _buffer_ids);
 
         for (int i = 0; i < bufferCount; i++)
@@ -64,7 +69,7 @@ namespace cpp2d
 
     GraphicsBuffer& VertexArray::operator[](const uint32_t& index) const
     {
-        assert(index < sizeof(buffers) / sizeof(GraphicsBuffer*));
+        assert(index < _buffer_count);
         return *buffers[index];
     }
 }

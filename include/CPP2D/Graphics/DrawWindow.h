@@ -11,5 +11,7 @@ namespace cpp2d
     {
     public:
         using Window::Window;
+
+        void clear() const;
     };
 }

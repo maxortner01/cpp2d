@@ -4,19 +4,32 @@
 
 #include <CPP2D/Graphics.h>
 
+using namespace cpp2d;
+
 int main()
 {
-    cpp2d::DrawWindow window(640, 360, "hello");
+    DrawWindow window(640, 360, "hello");
 
-    cpp2d::Quad quad;
+    ShaderType types[] = {
+        ShaderType::Vertex, ShaderType::Fragment
+    };
 
-    cpp2d::QuadRenderer renderer;
+    
+    Shader shader(&types[0], 2);
+    shader.fromFile(ShaderType::Vertex,   "vertex.glsl"  );
+    shader.fromFile(ShaderType::Fragment, "fragment.glsl");
+    shader.link();
+
+    QuadRenderer renderer;
+    Quad& quad = renderer.emplaceObject();
 
     while (window.isOpen())
     {
         window.pollEvent();
-        
-        renderer.render(window, quad);
+
+        window.clear();
+        shader.bind();
+        renderer.render(window);
 
         window.display();
     }

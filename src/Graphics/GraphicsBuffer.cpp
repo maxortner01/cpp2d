@@ -1,3 +1,6 @@
+#include <CPP2D/Graphics.h>
+#include <GL/glew.h>
+
 namespace cpp2d
 {
     GraphicsBuffer::GraphicsBuffer(const uint32_t& id, const uint32_t& vaoID) :
@@ -15,6 +18,10 @@ namespace cpp2d
         bind();
         glVertexAttribPointer(attribute.index, attribute.element_count, GL_FLOAT, false, 0, nullptr);
         glEnableVertexAttribArray(attribute.index);
+
+        if (attribute.instanced)
+            glVertexAttribDivisor(attribute.index, 1);
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 namespace cpp2d
 {
     class DrawSurface;
@@ -7,7 +9,17 @@ namespace cpp2d
     template<typename T>
     class Renderer
     {
+    protected:
+        std::vector<T> objects;
+
     public:
-        virtual void render(DrawSurface& surface, T& object) const = 0;
+        template<typename... Args>
+        T& emplaceObject(Args... args)
+        {
+            objects.emplace_back(args...);
+            return objects[objects.size() - 1];
+        }
+        
+        virtual void render(DrawSurface& surface) const = 0;
     };
 }
