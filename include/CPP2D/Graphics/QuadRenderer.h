@@ -13,6 +13,6 @@ namespace cpp2d
     public:
         QuadRenderer();
 
-        void render(DrawSurface& surface) const override;
+        void render(DrawSurface& surface, const Shader& shader) const override;
     };
 }

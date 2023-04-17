@@ -15,6 +15,7 @@ namespace cpp2d
     class Window : 
         public Utility::State<WindowState>
     {
+    protected:
         void* _window;
 
     public:

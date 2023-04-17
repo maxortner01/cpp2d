@@ -16,3 +16,4 @@
 #include "./Graphics/QuadRenderer.cpp"
 #include "./Graphics/Transform2D.cpp"
 #include "./Graphics/Shader.cpp"
+#include "./Graphics/Quad.cpp"

@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include "Shader.h"
+
 namespace cpp2d
 {
     class DrawSurface;
@@ -20,6 +22,6 @@ namespace cpp2d
             return objects[objects.size() - 1];
         }
         
-        virtual void render(DrawSurface& surface) const = 0;
+        virtual void render(DrawSurface& surface, const Shader& shader) const = 0;
     };
 }

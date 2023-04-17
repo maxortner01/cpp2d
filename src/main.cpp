@@ -8,12 +8,11 @@ using namespace cpp2d;
 
 int main()
 {
-    DrawWindow window(640, 360, "hello");
+    DrawWindow window(640 * 2, 360 * 2, "hello");
 
     ShaderType types[] = {
         ShaderType::Vertex, ShaderType::Fragment
     };
-
     
     Shader shader(&types[0], 2);
     shader.fromFile(ShaderType::Vertex,   "vertex.glsl"  );
@@ -21,15 +20,21 @@ int main()
     shader.link();
 
     QuadRenderer renderer;
-    Quad& quad = renderer.emplaceObject();
+    for (int j = 0; j < 100; j++)
+        for (int i = 0; i < 100; i++)
+        {
+            Quad& quad = renderer.emplaceObject();
+            quad.setPosition(Vec2f(-1 + (float)i / 50.f, -1 + (float)j / 50.f));
+            quad.setScale(Vec2f(0.01, 0.01));
+            quad.setColor({ (float)i / 100.f, (float)j / 100.f, 0, 1.f });
+        }
 
     while (window.isOpen())
     {
         window.pollEvent();
 
         window.clear();
-        shader.bind();
-        renderer.render(window);
+        renderer.render(window, shader);
 
         window.display();
     }

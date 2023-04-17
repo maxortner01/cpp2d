@@ -13,5 +13,7 @@ namespace cpp2d
         using Window::Window;
 
         void clear() const;
+
+        Vec2f getSize() const override;
     };
 }

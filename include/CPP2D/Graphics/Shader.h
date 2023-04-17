@@ -45,5 +45,17 @@ namespace cpp2d
 
         void   bind() const;
         void unbind() const;
+
+        // I should just do method overloads here... too bad template specialization
+        // requires declaration in the header (even though it makes sense)
+
+        // Set uniforms
+        template<typename T>
+        void setUniform(const std::string& uniformName, const T& uniform) const;
+
+        template<> 
+        void setUniform<float>(const std::string&, const float&) const;
+        template<> 
+        void setUniform<Vec2f>(const std::string&, const Vec2f&) const;
     };
 }

@@ -10,6 +10,14 @@ namespace cpp2d
         setScale(Vec2f(1, 1));
     }
 
+    void Transform2D::passToShader(const Shader& shader) const
+    {
+        shader.setUniform("rotation", getRotation());
+        shader.setUniform("position", getPosition());
+        shader.setUniform("center", getCenter());
+        shader.setUniform("scale", getScale());
+    }
+
     void Transform2D::setPosition(const Vec2f& position)
     {
         _position = position;

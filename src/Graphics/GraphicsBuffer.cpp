@@ -4,32 +4,43 @@
 namespace cpp2d
 {
     GraphicsBuffer::GraphicsBuffer(const uint32_t& id, const uint32_t& vaoID) :
-        _id(id), _vao_id(vaoID)
+        _id(id), _vao_id(vaoID), _dynamic(false)
     {   }
+
+    void GraphicsBuffer::setDynamic(bool dynamic)
+    {
+        _dynamic = dynamic;
+    }
 
     void GraphicsBuffer::bind() const
     {
         glBindBuffer(GL_ARRAY_BUFFER, _id);
     }
 
+    void GraphicsBuffer::setAttributeData(const AttributeData* const attributes, const uint32_t attributeCount)
+    {
+        for (int i = 0; i < attributeCount; i++)
+            setAttributeData(attributes[i]);
+    }
+
     void GraphicsBuffer::setAttributeData(const AttributeData& attribute)
     {
         glBindVertexArray(_vao_id);
         bind();
-        glVertexAttribPointer(attribute.index, attribute.element_count, GL_FLOAT, false, 0, nullptr);
+        glVertexAttribPointer(attribute.index, attribute.element_count, GL_FLOAT, GL_FALSE, attribute.stride, (void*)attribute.offset);
         glEnableVertexAttribArray(attribute.index);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         if (attribute.instanced)
             glVertexAttribDivisor(attribute.index, 1);
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     void GraphicsBuffer::setData(const void* const data, const size_t& bytesize) const
     {
         glBindVertexArray(_vao_id);
         bind();
-        glBufferData(GL_ARRAY_BUFFER, bytesize, data, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, bytesize, data, (_dynamic?GL_DYNAMIC_DRAW:GL_STATIC_DRAW));
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }

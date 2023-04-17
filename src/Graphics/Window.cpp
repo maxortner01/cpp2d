@@ -17,7 +17,12 @@ namespace cpp2d
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#   ifdef __APPLE__
+        // Because Apple hates graphics programmers
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#   endif
+
         GLFWwindow* _window_instance = glfwCreateWindow(width, height, title, NULL, NULL);
 
         int32_t _width, _height;
