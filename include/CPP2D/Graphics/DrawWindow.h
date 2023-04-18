@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Window.h"
-#include "DrawSurface.h"
+#include "Interfaces.h"
 
 namespace cpp2d
 {
@@ -12,8 +12,10 @@ namespace cpp2d
     public:
         using Window::Window;
 
-        void clear() const;
-
-        Vec2f getSize() const override;
+        void bind() override;
+        void unbind() override;
+        
+        Vec2u getSize() const override;
+        void clear() override;
     };
 }

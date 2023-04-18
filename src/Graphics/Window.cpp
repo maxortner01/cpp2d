@@ -6,7 +6,8 @@
 
 namespace cpp2d
 {
-    Window::Window(const uint32_t& width, const uint32_t& height, const char* title)
+    Window::Window(const uint32_t& width, const uint32_t& height, const char* title) :
+        UnsignedSizable({width, height})
     {
         if (!glfwInit())
         {

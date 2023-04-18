@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../util.h"
+
 namespace cpp2d
 {
     template<typename T>
@@ -12,5 +14,6 @@ namespace cpp2d
         {   }
     };
 
-    typedef Vec2<float> Vec2f;
+    typedef Vec2<float>    Vec2f;
+    typedef Vec2<uint32_t> Vec2u;
 }

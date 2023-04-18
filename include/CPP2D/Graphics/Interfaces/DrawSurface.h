@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Utility.h"
+#include "../../Utility.h"
 
 namespace cpp2d
 {
@@ -12,6 +12,11 @@ namespace cpp2d
     class DrawSurface
     {
     public:
-        virtual Vec2f getSize() const = 0;
+        virtual void bind() = 0;
+        virtual void unbind() = 0;
+        virtual Vec2u getSize() const = 0;
+
+        // Could remove virtual and make this bind(); clear(); unbind()
+        virtual void clear() = 0;
     };
 }

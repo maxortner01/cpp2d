@@ -8,6 +8,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+
 #include "./Graphics/Window.cpp"
 #include "./Graphics/GraphicsInstance.cpp"
 #include "./Graphics/VertexArray.cpp"
@@ -17,3 +20,6 @@
 #include "./Graphics/Transform2D.cpp"
 #include "./Graphics/Shader.cpp"
 #include "./Graphics/Quad.cpp"
+#include "./Graphics/Sizable.cpp"
+#include "./Graphics/Texture.cpp"
+#include "./Graphics/DrawTexture.cpp"

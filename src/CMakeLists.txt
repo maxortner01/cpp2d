@@ -9,13 +9,14 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-set (CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 
 # The necissary include directories
 include_directories(
     ${CMAKE_SOURCE_DIR}/include 
     ${CMAKE_SOURCE_DIR}/extern/glew/include 
     ${CMAKE_SOURCE_DIR}/extern/glfw/include
+    ${CMAKE_SOURCE_DIR}/extern/stb
 )
 
 # Set the location of the glfw lib file

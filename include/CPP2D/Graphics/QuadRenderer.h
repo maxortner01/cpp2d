@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Renderer.h"
+#include "./Interfaces/Renderer.h"
 #include "Quad.h"
 
 namespace cpp2d
@@ -13,6 +13,7 @@ namespace cpp2d
     public:
         QuadRenderer();
 
+        void render(DrawSurface& surface, const Shader& shader, const Quad& quad) const;
         void render(DrawSurface& surface, const Shader& shader) const override;
     };
 }

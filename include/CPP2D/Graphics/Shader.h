@@ -57,5 +57,7 @@ namespace cpp2d
         void setUniform<float>(const std::string&, const float&) const;
         template<> 
         void setUniform<Vec2f>(const std::string&, const Vec2f&) const;
+        template<> 
+        void setUniform<int32_t>(const std::string&, const int32_t&) const;
     };
 }

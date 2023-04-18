@@ -2,6 +2,7 @@
 
 #include "../util.h"
 #include "../Utility.h"
+#include "Sizable.h"
 
 namespace cpp2d
 {
@@ -13,7 +14,8 @@ namespace cpp2d
     };
 
     class Window : 
-        public Utility::State<WindowState>
+        public Utility::State<WindowState>,
+        UnsignedSizable
     {
     protected:
         void* _window;
@@ -21,6 +23,8 @@ namespace cpp2d
     public:
         Window(const uint32_t& width, const uint32_t& height, const char* title);
         ~Window();
+
+        using UnsignedSizable::getSize;
 
         void pollEvent();
         void display();

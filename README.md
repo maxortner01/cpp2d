@@ -1,4 +1,6 @@
 # CPP2D
+*The spiritual successor to [**SGAL**](https://www.github.com/maxortner01/SGAL).*
+
 This is a lightweight 2D graphics framework written in C++. It (will be) entirely self-contained, meaning there are no necissary dependencies (except for glew) needed to be downloaded (only what's present on your computer already).
 
 Currently, GLFW is required for this to work, but I'll be removing this requirement eventually.

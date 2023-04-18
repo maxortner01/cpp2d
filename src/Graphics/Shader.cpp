@@ -140,4 +140,10 @@ namespace cpp2d
     {
         glUniform2f(glGetUniformLocation(_id, uniformName.c_str()), uniform.x, uniform.y);
     }
+
+    template<>
+    void Shader::setUniform<int32_t>(const std::string& uniformName, const int32_t& uniform) const
+    {
+        glUniform1i(glGetUniformLocation(_id, uniformName.c_str()), uniform);
+    }
 }
