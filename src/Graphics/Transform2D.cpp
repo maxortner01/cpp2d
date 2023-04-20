@@ -38,6 +38,26 @@ namespace cpp2d
         _scale = scale;
     }
 
+    Vec2f& Transform2D::getPositionRef()
+    {
+        return _position;
+    }
+
+    float& Transform2D::getRotationRef()
+    {
+        return _rotation;
+    }
+
+    Vec2f& Transform2D::getCenterRef()
+    {
+        return _center;
+    }
+
+    Vec2f& Transform2D::getScaleRef()
+    {
+        return _scale;
+    }
+
     Vec2f Transform2D::getPosition() const
     {
         return _position;

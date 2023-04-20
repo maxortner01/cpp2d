@@ -29,6 +29,8 @@ namespace cpp2d
         void pollEvent();
         void display();
 
+        void setTitle(const std::string& title) const;
+
         bool isOpen() const;
     };
 }

@@ -4,7 +4,7 @@
 namespace cpp2d
 {
     GraphicsBuffer::GraphicsBuffer(const uint32_t& id, const uint32_t& vaoID) :
-        _id(id), _vao_id(vaoID), _dynamic(false)
+        _id(id), _vao_id(vaoID), _dynamic(false), _allocated_bytes(0)
     {   }
 
     void GraphicsBuffer::setDynamic(bool dynamic)
@@ -36,11 +36,21 @@ namespace cpp2d
 
     }
 
-    void GraphicsBuffer::setData(const void* const data, const size_t& bytesize) const
+    void GraphicsBuffer::setData(const void* const data, const size_t& bytesize)
     {
         glBindVertexArray(_vao_id);
         bind();
-        glBufferData(GL_ARRAY_BUFFER, bytesize, data, (_dynamic?GL_DYNAMIC_DRAW:GL_STATIC_DRAW));
+
+        // If the currently allocated size is different than the requested size, allocate a new
+        // buffer. Otherwise, modify the currently existing data
+        if (_allocated_bytes != bytesize)
+        {
+            glBufferData(GL_ARRAY_BUFFER, bytesize, data, (_dynamic?GL_DYNAMIC_DRAW:GL_STATIC_DRAW));
+            _allocated_bytes = bytesize;
+        }
+        else
+            glBufferSubData(GL_ARRAY_BUFFER, 0, bytesize, data);
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }

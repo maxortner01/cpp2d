@@ -36,6 +36,7 @@ namespace cpp2d
         }
 
         glfwMakeContextCurrent(_window_instance);
+        glfwSwapInterval( 0 );
 
         GraphicsInstance::get().init();
         glViewport(0, 0, _width, _height);
@@ -57,6 +58,11 @@ namespace cpp2d
     void Window::display()
     {
         glfwSwapBuffers((GLFWwindow*)_window);
+    }
+
+    void Window::setTitle(const std::string& title) const
+    {
+        glfwSetWindowTitle((GLFWwindow*)_window, title.c_str());
     }
 
     bool Window::isOpen() const

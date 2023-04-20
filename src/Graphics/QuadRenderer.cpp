@@ -14,7 +14,7 @@ namespace cpp2d
     };
     
     QuadRenderer::QuadRenderer() :
-        _quad(3)
+        _quad(4)
     {
         const Vertex vertices[] = {
             {{ -0.5,  0.5 }, { 0, 1 }},
@@ -33,16 +33,24 @@ namespace cpp2d
         _quad[0].setAttributeData({ 1, 2, false, sizeof(Vertex), sizeof(Vec2f) });
         _quad.setIndices(&indices[0], 6);
 
-        // Instanced Transform Data
+        // ------------- Instanced Data -------------
+
+        // The Transform data
         _quad[1].setDynamic(true);
         _quad[1].setData(nullptr, 0);
         uint32_t sizes[] = { 2, 2, 2, 1 };
         for (uint32_t i = 2; i < 6; i++)
             _quad[1].setAttributeData({ i, sizes[i - 2], true, sizeof(Transform), (i - 2) * (uint32_t)sizeof(Vec2f) });
 
+        // Color
         _quad[2].setDynamic(true);
         _quad[2].setData(nullptr, 0);
         _quad[2].setAttributeData({ 6, 4, true });
+
+        // Texture rect
+        _quad[3].setDynamic(true);
+        _quad[3].setData(nullptr, 0);
+        _quad[3].setAttributeData({ 7, 4, true });
     }
 
     void QuadRenderer::render(DrawSurface& surface, const Shader& shader, const Quad& quad) const
@@ -78,6 +86,7 @@ namespace cpp2d
         shader.bind();
         shader.setUniform("aspectRatio", (float)surface.getSize().x / (float)surface.getSize().y);
 
+        std::vector<FloatRect> rects(objects->size());
         std::vector<Color>     colors(objects->size());
         std::vector<Transform> transform_data(objects->size());
         std::memset(&transform_data[0], 0, sizeof(Transform) * objects->size());
@@ -91,10 +100,12 @@ namespace cpp2d
             };
 
             colors[i] = objects->at(i).getColor();
+            rects[i]  = objects->at(i).getTextureRect();
         }
 
         _quad[1].setData(&transform_data[0], objects->size() * sizeof(Transform));
         _quad[2].setData(&colors[0], objects->size() * sizeof(Color));
+        _quad[3].setData(&rects[0],  objects->size() * sizeof(FloatRect));
 
         // Bind surface or whatever
         _quad.bind();

@@ -22,6 +22,11 @@ namespace cpp2d
         void setCenter(const Vec2f& center);
         void setScale(const Vec2f& scale);
 
+        Vec2f& getPositionRef();
+        float& getRotationRef();
+        Vec2f& getCenterRef();
+        Vec2f& getScaleRef();
+
         Vec2f getPosition() const;
         float getRotation() const;
         Vec2f getCenter() const;

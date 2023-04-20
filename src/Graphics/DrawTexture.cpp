@@ -22,7 +22,7 @@ namespace cpp2d
     void DrawTexture::clear()
     {
         bind();
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(84.f / 255.f, 51.f / 255.f, 68.f / 255.f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         unbind();
     }

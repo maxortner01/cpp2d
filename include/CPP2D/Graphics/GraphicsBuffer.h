@@ -18,6 +18,7 @@ namespace cpp2d
         bool _dynamic;
         const uint32_t _id;
         const uint32_t _vao_id;
+        uint32_t       _allocated_bytes;
 
     public:
         GraphicsBuffer(const uint32_t& id, const uint32_t& vaoID);
@@ -28,6 +29,6 @@ namespace cpp2d
 
         void setAttributeData(const AttributeData* const attributes, const uint32_t attributeCount);
         void setAttributeData(const AttributeData& attribute);
-        void setData(const void* const data, const size_t& bytesize) const;
+        void setData(const void* const data, const size_t& bytesize);
     };
 }
