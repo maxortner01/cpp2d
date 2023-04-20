@@ -4,3 +4,4 @@ bin/
 lib/
 .DS_Store
 src/CMakeFiles
+docs/doxygen

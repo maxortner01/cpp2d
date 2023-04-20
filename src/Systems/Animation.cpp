@@ -12,8 +12,15 @@ namespace Systems
         for (Interface::AnimationNode* node : _nodes)
         {
             node->update();
-            if (node->isDone()) delete node;
-            else                not_finished.push_back(node);
+            if (node->isDone()) 
+            {
+                if (node->getNextAnimation())
+                    not_finished.push_back(node->getNextAnimation());
+                
+                delete node;
+            }
+            else 
+                not_finished.push_back(node);
         }
 
         _nodes.shrink_to_fit();

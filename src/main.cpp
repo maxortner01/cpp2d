@@ -54,13 +54,6 @@ int main()
             //quad.setCenter(Vec2f({ 7.f, -4.f }));
             if (j + i / 2.0 < 0 || j + i / 2.0 > 6) continue;
 
-            animation.emplaceAnimation<Vec2f>(
-                &quad.getCenterRef(), 
-                Vec2f({7.f, 1.f}), 
-                Vec2f({7.f, -4.f}), 
-                2.0, (double)(quad.getPosition().x + quad.getPosition().y) / 2.0
-            );
-
 
             counter++;
         }
@@ -80,6 +73,28 @@ int main()
     while (window.isOpen())
     {
         Utility::Timer frame_time;
+
+        if (!animation.runningAnimations())
+        {
+            for (int i = 0; i < quads.size(); i++)
+            {
+                Quad& quad = quads[i];
+
+                animation.emplaceAnimation<Systems::AnimationInterpolate<Vec2f>>(
+                    &quad.getCenterRef(), 
+                    Vec2f({7.f, -3.f}), 
+                    Vec2f({7.f, -4.f}), 
+                    2.0, 1.5f + (double)(quad.getPosition().x + quad.getPosition().y) / 2.0
+                );
+
+                animation.emplaceAnimation<Systems::AnimationInterpolate<Vec2f>>(
+                    &quad.getCenterRef(), 
+                    Vec2f({7.f, -4.f}), 
+                    Vec2f({7.f, -3.f}), 
+                    2.0, 5.f + (double)(quad.getPosition().x + quad.getPosition().y) / 2.0
+                );
+            }
+        }
 
         /*
         for (int i = 0; i < quads.size(); i++)
