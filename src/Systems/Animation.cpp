@@ -6,29 +6,22 @@ namespace Systems
 {
     void Animation::update()
     {
-        uint32_t counter = 0;
-        std::vector<Interface::AnimationNode*> not_finished;
-        not_finished.reserve(_nodes.size());
-        for (Interface::AnimationNode* node : _nodes)
+        for (Interface::AnimationNode*& node : _nodes)
         {
             node->update();
-            if (node->isDone()) 
+
+            if (node->isDone())
             {
-                if (node->getNextAnimation())
-                    not_finished.push_back(node->getNextAnimation());
-                
+                Interface::AnimationNode* next_node = node->getNextAnimation();
                 delete node;
+                if (next_node) next_node->start();
+                node = next_node;
             }
-            else 
-                not_finished.push_back(node);
         }
 
-        _nodes.shrink_to_fit();
-        if (not_finished.size() != _nodes.size())
-        {
-            _nodes.resize(not_finished.size());
-            std::memcpy(&_nodes[0], &not_finished[0], sizeof(void*) * not_finished.size());
-        }
+        std::vector<Interface::AnimationNode*> no_nullptr;
+        std::copy_if(_nodes.begin(), _nodes.end(), std::back_inserter(no_nullptr), [](Interface::AnimationNode* a) { return a != nullptr; });
+        std::copy(no_nullptr.begin(), no_nullptr.end(), _nodes.begin());
     }
 
     uint32_t Animation::runningAnimations() const

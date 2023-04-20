@@ -7,11 +7,32 @@
 #include <CPP2D/Systems.h>
 
 using namespace cpp2d;
+using namespace cpp2d::Systems;
 
 bool compareQuadZ(Quad q1, Quad q2)
 {
     return (q1.getZ() < q2.getZ());
 }
+
+class BounceAnimation :
+    public AnimationInterpolate<Vec2f>
+{
+public:
+    using AnimationInterpolate<Vec2f>::AnimationInterpolate;
+
+    void onStateChanged(const AnimationState& newState) override
+    {
+        if (getState() == AnimationState::Running && newState == AnimationState::Done)
+        {
+            setNextAnimation(new BounceAnimation(
+                getValue(), 
+                getFinalValue(), 
+                getStartValue(), 
+                2.0, getDelay() + 2.f
+            ));
+        }
+    }
+};
 
 int main()
 {
@@ -54,9 +75,22 @@ int main()
             //quad.setCenter(Vec2f({ 7.f, -4.f }));
             if (j + i / 2.0 < 0 || j + i / 2.0 > 6) continue;
 
-
             counter++;
         }
+
+    for (int i = 0; i < quads.size(); i++)
+    {
+        Quad& quad = quads[i];
+
+        BounceAnimation* anim = new BounceAnimation(
+            &quad.getCenterRef(), 
+            Vec2f({7.f, -3.f}), 
+            Vec2f({7.f, -4.f}), 
+            2.0, 1.5f + (double)(quad.getPosition().x - quad.getPosition().y) / 2.0
+        );
+
+        animation.pushAnimation(anim);
+    }
 
     sort(quads.begin(), quads.end(), compareQuadZ);
 
@@ -74,42 +108,11 @@ int main()
     {
         Utility::Timer frame_time;
 
-        if (!animation.runningAnimations())
-        {
-            for (int i = 0; i < quads.size(); i++)
-            {
-                Quad& quad = quads[i];
-
-                animation.emplaceAnimation<Systems::AnimationInterpolate<Vec2f>>(
-                    &quad.getCenterRef(), 
-                    Vec2f({7.f, -3.f}), 
-                    Vec2f({7.f, -4.f}), 
-                    2.0, 1.5f + (double)(quad.getPosition().x + quad.getPosition().y) / 2.0
-                );
-
-                animation.emplaceAnimation<Systems::AnimationInterpolate<Vec2f>>(
-                    &quad.getCenterRef(), 
-                    Vec2f({7.f, -4.f}), 
-                    Vec2f({7.f, -3.f}), 
-                    2.0, 5.f + (double)(quad.getPosition().x + quad.getPosition().y) / 2.0
-                );
-            }
-        }
-
-        /*
-        for (int i = 0; i < quads.size(); i++)
-        {
-            Quad& quad = quads[i];
-
-            float mod = 1 - cos(0.5 * (quad.getPosition().x + quad.getPosition().y) + 0.5* timer.getTime());
-            quad.setCenter(Vec2f({ 7.f, -4.f + 0.5 * pow(mod, 4) }));
-        }*/
-
-        //std::cout << animation.runningAnimations() << "\n";
-
         animation.update();
 
         window.pollEvent();
+
+        //std::cout << quads[0].getCenter().y << "\n";
 
         texture.bind(1);
         shader.bind();

@@ -33,6 +33,18 @@ namespace Interface
         {   }
 
         /**
+         * @brief Virtual destructor
+         * 
+         * This is a virtual destructor to ensure that the correct destructor for the derived class is 
+         * called when a pointer to the base class is deleted. 
+         * 
+         * It also calls the virtual method onDelete in order to pass to the user the ability
+         * to mutate the next animation class (for example to add a new animation in the sequence).
+         */
+        virtual ~AnimationNode() 
+        {   }
+
+        /**
          * @brief Set the animation that should be run when this one finishes
          * 
          * This function sets the next animation in the sequence by taking a pointer to an 
@@ -55,14 +67,6 @@ namespace Interface
         {
             return _next_node;
         }
-
-        /**
-         * @brief Virtual destructor
-         * 
-         * This is a virtual destructor to ensure that the correct destructor for the derived class is 
-         * called when a pointer to the base class is deleted.
-         */
-        virtual ~AnimationNode() {}
 
         /**
          * @brief Interpolate the animation at the given time
@@ -90,11 +94,20 @@ namespace Interface
          * This pure virtual function updates the state of the animation for the next frame.
          */
         virtual void update() = 0;
+
+        /**
+         * @brief Starts the animation
+         * 
+         * This pure virtual function starts the animation. This is usually called upon 
+         * the parent's destruction in the Animation class.
+         */
+        virtual void start() = 0;
     };
 }
 
     enum class AnimationState
     {
+        Waiting,
         Running,
         Done
     };
@@ -109,8 +122,8 @@ namespace Interface
      */
     template<typename T>
     class AnimationType : 
-        public Interface::AnimationNode,
-        Utility::State<AnimationState>
+        public    Interface::AnimationNode,
+        protected Utility::State<AnimationState>
     {
         Utility::Timer timer;
         const T _start_value;
@@ -119,6 +132,12 @@ namespace Interface
         const double _delay;
         T* _value;
         Interface::AnimationNode* _next_node;
+
+    protected:
+        T* getValue() const
+        {
+            return _value;
+        }
 
     public:
         /**
@@ -138,10 +157,8 @@ namespace Interface
             _final_value(finalValue), 
             _duration(duration), 
             _delay(delay),
-            Utility::State<AnimationState>(AnimationState::Running)
-        {   
-            timer.restart();
-        }
+            Utility::State<AnimationState>(AnimationState::Waiting)
+        {   }
 
         /**
          * @brief Virtual destructor
@@ -151,6 +168,34 @@ namespace Interface
          */
         virtual ~AnimationType()
         {    }
+
+        /**
+         * @brief Check if the animation is complete
+         * 
+         * This function checks whether the animation is complete or not by checking the state of the 
+         * animation. 
+         * 
+         * @return True if the animation is complete, false otherwise
+         */
+        bool isDone() const override
+        {
+            return (getState() == AnimationState::Done);
+        }
+
+        double getDelay() const
+        {
+            return _delay;
+        }
+
+        T getStartValue() const
+        {
+            return _start_value;
+        }
+
+        T getFinalValue() const
+        {
+            return _final_value;
+        }
 
         /**
          * @brief Update the animation state
@@ -166,7 +211,7 @@ namespace Interface
         {
             const double relative_time = (timer.getTime() - _delay) / _duration;
 
-            if (!isDone() && relative_time > 0) 
+            if (getState() == AnimationState::Running && relative_time > 0) 
             { 
                 *_value = _start_value + (_final_value - _start_value) * interpolate(relative_time);
 
@@ -179,16 +224,12 @@ namespace Interface
         }
 
         /**
-         * @brief Check if the animation is complete
-         * 
-         * This function checks whether the animation is complete or not by checking the state of the 
-         * animation. 
-         * 
-         * @return True if the animation is complete, false otherwise
+         * @brief This starts the animation.
          */
-        bool isDone() const override
+        void start() override
         {
-            return (getState() == AnimationState::Done);
+            setState(AnimationState::Running);
+            timer.restart();
         }
     };
 
@@ -208,18 +249,47 @@ namespace Interface
         }
     };
 
+    /**
+     * @brief The Animation class manages a list of animation nodes and updates them over time
+     */
     class Animation
     {
         std::vector<Interface::AnimationNode*> _nodes;
 
     public:
+        /**
+         * @brief Add a new animation node to the list of nodes
+         *
+         * @tparam T The type of animation node to add
+         * @tparam Args The types of arguments to pass to the constructor of the new node
+         * @param args The arguments to pass to the constructor of the new node
+         */
         template<typename T, typename... Args>
-        void emplaceAnimation(Args... args)
+        T* emplaceAnimation(Args... args)
         {
             _nodes.push_back(new T(args...));
+
+            _nodes[_nodes.size() - 1]->start();
+
+            return (T*)_nodes[_nodes.size() - 1];
         }
 
+        void pushAnimation(Interface::AnimationNode* node)
+        {
+            node->start();
+            _nodes.push_back(node);
+        }
+
+        /**
+         * @brief Update all animations in the list of nodes
+         */
         void update();
+
+        /**
+         * @brief Get the number of running animations
+         * 
+         * @return uint32_t The number of running animations
+         */
         uint32_t runningAnimations() const;
     };
 }

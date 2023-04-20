@@ -22,4 +22,4 @@ find_package_handle_standard_args(Sphinx
                                   SPHINX_EXECUTABLE)
 
 add_subdirectory(src)
-add_subdirectory(docs)
+#add_subdirectory(docs)

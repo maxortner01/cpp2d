@@ -1,5 +1,6 @@
 #include <CPP2D/Graphics.h>
 
+#include <iostream>
 #include <GL/glew.h>
 
 namespace cpp2d
