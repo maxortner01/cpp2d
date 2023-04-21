@@ -8,13 +8,14 @@ namespace Systems
     {
         for (Interface::AnimationNode*& node : _nodes)
         {
+            if (node->isWaiting()) node->start();
+
             node->update();
 
             if (node->isDone())
             {
                 Interface::AnimationNode* next_node = node->getNextAnimation();
                 delete node;
-                if (next_node) next_node->start();
                 node = next_node;
             }
         }

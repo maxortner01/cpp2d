@@ -67,10 +67,12 @@ namespace cpp2d
             .position = quad.getPosition(),
             .rotation = quad.getRotation()
         };
-        Color color = quad.getColor();
+        Color     color = quad.getColor();
+        FloatRect rect  = quad.getTextureRect();
 
         _quad[1].setData(&transform, sizeof(Transform));
-        _quad[2].setData(&color,     sizeof(Color));        
+        _quad[2].setData(&color,     sizeof(Color));    
+        _quad[3].setData(&rect,      sizeof(FloatRect));    
 
         // Bind surface or whatever
         _quad.bind();
@@ -80,38 +82,74 @@ namespace cpp2d
         surface.unbind();
     }
 
-    void QuadRenderer::render(DrawSurface& surface, const Shader& shader) const
+    void QuadRenderer::render(DrawSurface& surface, const Shader& shader, const Quad* const objects, const uint32_t& count) const
     {
         surface.bind();
 
         shader.bind();
         shader.setUniform("aspectRatio", (float)surface.getSize().x / (float)surface.getSize().y);
 
-        std::vector<FloatRect> rects(objects->size());
-        std::vector<Color>     colors(objects->size());
-        std::vector<Transform> transform_data(objects->size());
-        std::memset(&transform_data[0], 0, sizeof(Transform) * objects->size());
-        for (uint32_t i = 0; i < objects->size(); i++)
+        std::vector<FloatRect> rects(count);
+        std::vector<Color>     colors(count);
+        std::vector<Transform> transform_data(count);
+        std::memset(&transform_data[0], 0, sizeof(Transform) * count);
+        for (uint32_t i = 0; i < count; i++)
         {
             transform_data[i] = {
-                .scale    = objects->at(i).getScale(),
-                .center   = objects->at(i).getCenter(),
-                .position = objects->at(i).getPosition(),
-                .rotation = objects->at(i).getRotation()
+                .scale    = objects[i].getScale(),
+                .center   = objects[i].getCenter(),
+                .position = objects[i].getPosition(),
+                .rotation = objects[i].getRotation()
             };
 
-            colors[i] = objects->at(i).getColor();
-            rects[i]  = objects->at(i).getTextureRect();
+            colors[i] = objects[i].getColor();
+            rects[i]  = objects[i].getTextureRect();
         }
 
-        _quad[1].setData(&transform_data[0], objects->size() * sizeof(Transform));
-        _quad[2].setData(&colors[0], objects->size() * sizeof(Color));
-        _quad[3].setData(&rects[0],  objects->size() * sizeof(FloatRect));
+        _quad[1].setData(&transform_data[0], count * sizeof(Transform));
+        _quad[2].setData(&colors[0], count * sizeof(Color));
+        _quad[3].setData(&rects[0],  count * sizeof(FloatRect));
 
         // Bind surface or whatever
         _quad.bind();
         _quad[0].bind();
-        glDrawElementsInstanced(GL_TRIANGLES, _quad.getIndexCount(), GL_UNSIGNED_INT, 0, objects->size());
+        glDrawElementsInstanced(GL_TRIANGLES, _quad.getIndexCount(), GL_UNSIGNED_INT, 0, count);
+
+        surface.unbind();
+    }
+
+    void QuadRenderer::render(DrawSurface& surface, const Shader& shader, const Quad* const* const objects, const uint32_t& count) const
+    {
+        surface.bind();
+
+        shader.bind();
+        shader.setUniform("aspectRatio", (float)surface.getSize().x / (float)surface.getSize().y);
+
+        std::vector<FloatRect> rects(count);
+        std::vector<Color>     colors(count);
+        std::vector<Transform> transform_data(count);
+        std::memset(&transform_data[0], 0, sizeof(Transform) * count);
+        for (uint32_t i = 0; i < count; i++)
+        {
+            transform_data[i] = {
+                .scale    = objects[i]->getScale(),
+                .center   = objects[i]->getCenter(),
+                .position = objects[i]->getPosition(),
+                .rotation = objects[i]->getRotation()
+            };
+
+            colors[i] = objects[i]->getColor();
+            rects[i]  = objects[i]->getTextureRect();
+        }
+
+        _quad[1].setData(&transform_data[0], count * sizeof(Transform));
+        _quad[2].setData(&colors[0], count * sizeof(Color));
+        _quad[3].setData(&rects[0],  count * sizeof(FloatRect));
+
+        // Bind surface or whatever
+        _quad.bind();
+        _quad[0].bind();
+        glDrawElementsInstanced(GL_TRIANGLES, _quad.getIndexCount(), GL_UNSIGNED_INT, 0, count);
 
         surface.unbind();
     }

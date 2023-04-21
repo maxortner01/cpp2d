@@ -5,8 +5,13 @@
 
 namespace cpp2d
 {
+    struct QuadSceneStruct
+    {
+
+    };
+
     class QuadRenderer : 
-        public Renderer<Quad>
+        public Renderer<QuadSceneStruct>
     {
         VertexArray _quad;
 
@@ -14,6 +19,7 @@ namespace cpp2d
         QuadRenderer();
 
         void render(DrawSurface& surface, const Shader& shader, const Quad& quad) const;
-        void render(DrawSurface& surface, const Shader& shader) const override;
+        void render(DrawSurface& surface, const Shader& shader, const Quad*  const objects, const uint32_t& count) const;
+        void render(DrawSurface& surface, const Shader& shader, const Quad* const* const objects, const uint32_t& count) const;
     };
 }

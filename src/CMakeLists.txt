@@ -17,6 +17,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/extern/glew/include 
     ${CMAKE_SOURCE_DIR}/extern/glfw/include
     ${CMAKE_SOURCE_DIR}/extern/stb
+    ${CMAKE_SOURCE_DIR}/extern/nlohmann
 )
 
 # Set the location of the glfw lib file

@@ -23,3 +23,5 @@
 #include "./Graphics/Sizable.cpp"
 #include "./Graphics/Texture.cpp"
 #include "./Graphics/DrawTexture.cpp"
+
+#include "./Graphics/Interfaces/Renderer.cpp"

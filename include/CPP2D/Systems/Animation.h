@@ -88,6 +88,8 @@ namespace Interface
          */
         virtual bool isDone() const = 0;
 
+        virtual bool isWaiting() const = 0;
+
         /**
          * @brief Update the animation state
          * 
@@ -102,6 +104,8 @@ namespace Interface
          * the parent's destruction in the Animation class.
          */
         virtual void start() = 0;
+
+        virtual void stop() = 0;
     };
 }
 
@@ -182,9 +186,19 @@ namespace Interface
             return (getState() == AnimationState::Done);
         }
 
+        bool isWaiting() const override
+        {
+            return (getState() == AnimationState::Waiting);
+        }
+
         double getDelay() const
         {
             return _delay;
+        }
+
+        double getDuration() const
+        {
+            return _duration;
         }
 
         T getStartValue() const
@@ -231,6 +245,11 @@ namespace Interface
             setState(AnimationState::Running);
             timer.restart();
         }
+
+        void stop() override
+        {
+            setState(AnimationState::Done);
+        }
     };
 
     template<typename T>
@@ -276,7 +295,6 @@ namespace Interface
 
         void pushAnimation(Interface::AnimationNode* node)
         {
-            node->start();
             _nodes.push_back(node);
         }
 
