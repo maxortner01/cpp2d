@@ -31,6 +31,7 @@ namespace cpp2d
 
         void setTitle(const std::string& title) const;
 
+        void close() const;
         bool isOpen() const;
     };
 }
