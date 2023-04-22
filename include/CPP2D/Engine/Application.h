@@ -6,30 +6,10 @@
 #include "../Utility.h"
 #include "../Graphics.h"
 
+#include "Scene.h"
+
 namespace cpp2d
 {
-    enum class SceneState
-    {
-        Running,
-        Done
-    };
-
-    class Scene :
-        public Utility::State<SceneState>
-    {
-    protected:
-        DrawTexture _texture;
-
-    public:
-        Scene(const Vec2u& size);
-        virtual ~Scene() {}
-
-        Vec2u        getSize() const;
-        DrawTexture& getDrawTexture();
-
-        virtual void update(DrawSurface* surface) = 0;
-    };
-
     class Application
     {
         inline static const ShaderType _types[2] = {

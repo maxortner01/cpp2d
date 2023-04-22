@@ -1,5 +1,7 @@
 #include <cpp2d/Engine.h>
 
+#include <entt/entt.hpp>
+
 namespace cpp2d
 {
     static const char* vertex = R"(
@@ -46,22 +48,7 @@ namespace cpp2d
         FragColor = vertexColor * tex_color;
         if(FragColor.a < 0.1) discard;
     })";
-
-    Scene::Scene(const Vec2u& size) :
-        _texture(size), 
-        Utility::State<SceneState>(SceneState::Running)
-    {   }
-
-    Vec2u Scene::getSize() const
-    {
-        return _texture.getSize();
-    }
-
-    DrawTexture& Scene::getDrawTexture() 
-    {
-        return _texture;
-    }
-
+    
     Application::Application(const Vec2u& size, const std::string& title) :
         _window(size.x, size.y, title.c_str()),
         _window_shader(_types, 2)
