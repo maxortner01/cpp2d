@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "../../Utility.h"
+#include "../Timer.h"
 #include "../Shader.h"
 
 namespace cpp2d
@@ -17,7 +17,7 @@ namespace Interface
         uint32_t _last_fps[10];
     
     protected:
-        Utility::Timer _frame_timer;
+        Timer _frame_timer;
         void submitFrameTime(const uint32_t& fps);
 
     public:

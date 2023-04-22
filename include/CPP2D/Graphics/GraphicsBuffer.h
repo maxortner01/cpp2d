@@ -10,7 +10,7 @@ namespace cpp2d
         uint32_t element_count;
         bool     instanced;
         uint32_t stride;
-        uint32_t offset;
+        size_t   offset;
     };
 
     class GraphicsBuffer

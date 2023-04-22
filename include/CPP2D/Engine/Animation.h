@@ -1,13 +1,13 @@
 #pragma once
 
+#include <cpp2d/Graphics.h>
 #include <iostream>
 #include <vector>
 #include "../util.h"
-#include "../Utility.h"
 
 namespace cpp2d
 {
-namespace Systems
+namespace Engine
 {
 namespace Interface
 {
@@ -129,7 +129,7 @@ namespace Interface
         public    Interface::AnimationNode,
         protected Utility::State<AnimationState>
     {
-        Utility::Timer timer;
+        Timer   timer;
         const T _start_value;
         const T _final_value;
         const double _duration;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "./Utility.h"
 #include "./Graphics/Interfaces.h"
 #include "./Graphics/Window.h"
 #include "./Graphics/GraphicsInstance.h"
@@ -11,3 +12,4 @@
 #include "./Graphics/Sizable.h"
 #include "./Graphics/Texture.h"
 #include "./Graphics/DrawTexture.h"
+#include "./Graphics/Timer.h"

@@ -1,10 +1,8 @@
-#include <CPP2D/Utility.h>
+#include <cpp2d/Utility.h>
 
 #include <GLFW/glfw3.h>
 
 namespace cpp2d
-{
-namespace Utility
 {
     Timer::Timer() :
         _start_time(glfwGetTime())
@@ -19,5 +17,4 @@ namespace Utility
     {
         _start_time = glfwGetTime();
     }
-}
 }

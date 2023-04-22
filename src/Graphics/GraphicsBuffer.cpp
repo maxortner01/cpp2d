@@ -1,4 +1,4 @@
-#include <CPP2D/Graphics.h>
+#include <cpp2d/Graphics.h>
 #include <GL/glew.h>
 
 namespace cpp2d
@@ -27,6 +27,7 @@ namespace cpp2d
     {
         glBindVertexArray(_vao_id);
         bind();
+
         glVertexAttribPointer(attribute.index, attribute.element_count, GL_FLOAT, GL_FALSE, attribute.stride, (void*)attribute.offset);
         glEnableVertexAttribArray(attribute.index);
         glBindBuffer(GL_ARRAY_BUFFER, 0);

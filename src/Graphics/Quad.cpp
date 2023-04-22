@@ -1,4 +1,4 @@
-#include <CPP2D/Graphics.h>
+#include <cpp2d/Graphics.h>
 
 #include <vector>
 #include <GL/glew.h>

@@ -4,8 +4,6 @@
 
 namespace cpp2d
 {
-namespace Utility
-{
     class Timer
     {
         double _start_time;
@@ -16,5 +14,4 @@ namespace Utility
         double getTime() const;
         void restart();
     };
-}
 }

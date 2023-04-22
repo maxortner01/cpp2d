@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <cstdio>
 
-#include <CPP2D/Graphics.h>
+#include <cpp2d/Graphics.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -23,5 +23,6 @@
 #include "./Graphics/Sizable.cpp"
 #include "./Graphics/Texture.cpp"
 #include "./Graphics/DrawTexture.cpp"
+#include "./Graphics/Timer.cpp"
 
 #include "./Graphics/Interfaces/Renderer.cpp"

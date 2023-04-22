@@ -1,4 +1,4 @@
-#include <CPP2D/Graphics.h>
+#include <cpp2d/Graphics.h>
 
 #include <GLFW/glfw3.h>
 #include <GL/glew.h>
