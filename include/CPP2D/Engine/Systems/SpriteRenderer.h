@@ -27,7 +27,7 @@ namespace Systems
         VertexArray quad;
         Shader      spriteShader;
 
-        void submitRender(std::vector<Transform>* transforms, std::vector<Color>* colors);
+        void submitRender(Transform* transforms, Color* colors, uint32_t* textures, size_t count);
 
     public:
         SpriteRenderer();

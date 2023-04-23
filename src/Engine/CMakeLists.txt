@@ -22,9 +22,7 @@ link_directories(
 )
 
 # All we need the engine.cpp file
-add_library(cpp2d-engine SHARED ../Engine.cpp ${CMAKE_SOURCE_DIR}/extern/glew/src/glew.c)
-
-find_library(OPENGL OpenGL)
+add_library(cpp2d-engine SHARED ../Engine.cpp)
 
 # We wish to link to the graphics library
 target_link_libraries(cpp2d-engine ${OPENGL} libcpp2d-graphics.dylib)

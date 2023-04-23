@@ -10,12 +10,16 @@ namespace Systems
     static const char* vertex = R"(
     #version 330 core
     layout (location = 0) in vec2 aPos;
-    layout (location = 1) in vec2 position;
-    layout (location = 2) in vec2 scale;
-    layout (location = 3) in float rotation;
-    layout (location = 4) in vec4 color;
+    layout (location = 1) in vec2 texcoords;
+    layout (location = 2) in vec2 position;
+    layout (location = 3) in vec2 scale;
+    layout (location = 4) in float rotation;
+    layout (location = 5) in vec4 color;
+    layout (location = 6) in int texid;
 
+    out vec2 texCoords;
     out vec4 vertexColor;
+    flat out int out_texid;
 
     uniform float aspectRatio;
 
@@ -30,41 +34,45 @@ namespace Systems
 
         gl_Position = vec4(pos.x / aspectRatio, pos.y, 0.0, 1.0); 
         vertexColor = color; 
+        out_texid   = texid;
+        texCoords   = texcoords;
     })";
 
     static const char* fragment = R"(
     #version 330 core
     out vec4 FragColor;
     
+    in vec2 texCoords;
     in vec4 vertexColor;   
+    flat in int out_texid;
 
-    //uniform sampler2D tex;
+    uniform sampler2D textures[5];
 
     void main()
     {
-        //vec4 tex_color = texture(tex, texCoords);
+        vec4 tex_color = texture(textures[out_texid], texCoords);
 
-        FragColor = vertexColor; //* tex_color;
-        FragColor = vec4(1, 0, 0, 1);
+        FragColor = vertexColor * (out_texid > 0?tex_color:vec4(1));
         if(FragColor.a < 0.1) discard;
     })";
 
-    void SpriteRenderer::submitRender(std::vector<Transform>* transforms, std::vector<Color>* colors)
+    void SpriteRenderer::submitRender(Transform* transforms, Color* colors, uint32_t* textures, size_t count)
     {
         spriteShader.bind();
         
-        quad[1].setData(&(*transforms->begin()), sizeof(Transform) * transforms->size());
-        quad[2].setData(&(*colors->begin()), sizeof(Color) * colors->size());
+        quad[1].setData(transforms, sizeof(Transform) * count);
+        quad[2].setData(colors, sizeof(Color) * count);
+        quad[3].setData(textures, sizeof(uint32_t) * count);
 
         quad.bind();
         quad[0].bind();
-        GraphicsInstance::get().drawInstanced(quad.getIndexCount(), colors->size());
+        GraphicsInstance::get().drawInstanced(quad.getIndexCount(), count);
 
         spriteShader.unbind();
     }
 
     SpriteRenderer::SpriteRenderer() :
-        quad(3),
+        quad(4),
         spriteShader({ ShaderType::Vertex, ShaderType::Fragment })
     {
         // Construct the sprite shader
@@ -73,11 +81,17 @@ namespace Systems
         spriteShader.link();
 
         // Construct the quad vertex array
-        const Vec2f vertices[] = {
-            Vec2f(-1,  1),
-            Vec2f( 1,  1),
-            Vec2f( 1, -1),
-            Vec2f(-1, -1)
+        struct Vertex
+        {
+            Vec2f position;
+            Vec2f texcoord;
+        };
+
+        const Vertex vertices[] = {
+            { { -1,  1 }, { 0, 1 } },
+            { {  1,  1 }, { 1, 1 } },
+            { {  1, -1 }, { 1, 0 } },
+            { { -1, -1 }, { 0, 0 } }
         };
 
         const uint32_t indices[] = {
@@ -86,20 +100,25 @@ namespace Systems
 
         quad.setIndices(&indices[0], 6);
         quad[0].setDynamic(false);
-        quad[0].setData(vertices, sizeof(Vec2f) * 4);
-        quad[0].setAttributeData({ 0, 2 });
+        quad[0].setData(vertices, sizeof(Vertex) * 4);
+        quad[0].setAttributeData({ 0, 2, false, sizeof(Vertex), 0 });
+        quad[0].setAttributeData({ 1, 2, false, sizeof(Vertex), sizeof(Vec2f) });
 
         // Transform data structure
         quad[1].setDynamic(true);
         quad[1].setData(nullptr, 0);
-        quad[1].setAttributeData({1, 2, true, sizeof(Transform), 0 * sizeof(Vec2f)}); // position
-        quad[1].setAttributeData({2, 2, true, sizeof(Transform), 1 * sizeof(Vec2f)}); // scale
-        quad[1].setAttributeData({3, 1, true, sizeof(Transform), 2 * sizeof(Vec2f)}); // rotation
+        quad[1].setAttributeData({2, 2, true, sizeof(Transform), 0 * sizeof(Vec2f)}); // position
+        quad[1].setAttributeData({3, 2, true, sizeof(Transform), 1 * sizeof(Vec2f)}); // scale
+        quad[1].setAttributeData({4, 1, true, sizeof(Transform), 2 * sizeof(Vec2f)}); // rotation
 
         // Color data structure
         quad[2].setDynamic(true);
         quad[2].setData(nullptr, 0);
-        quad[2].setAttributeData({ 4, 4, true });
+        quad[2].setAttributeData({ 5, 4, true });
+
+        quad[3].setDynamic(true);
+        quad[3].setData(nullptr, 0);
+        quad[3].setAttributeData({ 6, 1, true }); // texture ids
     }
 
     void SpriteRenderer::update(Scene* const scene, double dt) 
@@ -115,48 +134,40 @@ namespace Systems
         uint32_t enumerator = 0;
         for (auto entity : view) sprites[enumerator++] = &view.get<Sprite>(entity);
 
+        std::vector<uint32_t> textures;
         std::vector<Color> colors;
         std::vector<Systems::Transform> transforms;
 
+        textures.reserve(view.size());
+        colors.reserve(view.size());
+        transforms.reserve(view.size());
+
         const float aspectRatio = (float)scene->getSize().x / (float)scene->getSize().y;
-        // Not sure if uniform needs to be bound...
+        // Not sure if/why uniform needs to be bound...
         spriteShader.bind();
         spriteShader.setUniform("aspectRatio", aspectRatio);
-
-        enumerator = 0;
-        uint32_t last_index = 0;
-        uint32_t current_texture = sprites[0]->texture;
+        
         for (auto& sprite : sprites)
         {
-            if (sprite->texture != current_texture)
-            {
-                scene->getDrawTexture().bind();
-                Texture::bindTexture(current_texture, 0);
-
-                submitRender(&transforms, &colors);
-                scene->getDrawTexture().unbind();
-
-                // submit from begin() + last_index to begin() + enumerator for rendering
-                last_index = enumerator;
-                current_texture = sprites[enumerator]->texture;
-
-                // Empty the buffers
-                transforms.clear();
-                colors.clear();
-            }
-
+            textures.push_back(sprite->texture);
             colors.push_back(sprite->color);
             transforms.push_back(sprite->transform);
-
-            enumerator++;
         }
+
+        // Get the unique texture ids
+        std::vector<uint32_t> tex_ids = textures;
+        std::vector<uint32_t>::iterator it = std::unique(tex_ids.begin(), tex_ids.end());
+        tex_ids.resize(std::distance(tex_ids.begin(), it));
 
         if (transforms.size())
         {
             scene->getDrawTexture().bind();
-            Texture::bindTexture(current_texture, 0);
+            for (int i = 0; i < tex_ids.size(); i++)
+                Texture::bindTexture(tex_ids[i], i);
 
-            submitRender(&transforms, &colors);
+            spriteShader.setUniform("textures", &tex_ids[0], tex_ids.size());
+
+            submitRender(&transforms[0], &colors[0], &textures[0], view.size());
             scene->getDrawTexture().unbind();
         }
     }

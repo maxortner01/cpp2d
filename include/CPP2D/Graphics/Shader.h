@@ -53,14 +53,9 @@ namespace cpp2d
         // requires declaration in the header (even though it makes sense)
 
         // Set uniforms
-        template<typename T>
-        void setUniform(const std::string& uniformName, const T& uniform) const;
-
-        template<> 
-        void setUniform<float>(const std::string&, const float&) const;
-        template<> 
-        void setUniform<Vec2f>(const std::string&, const Vec2f&) const;
-        template<> 
-        void setUniform<int32_t>(const std::string&, const int32_t&) const;
+        void setUniform(const std::string&, const float&) const;
+        void setUniform(const std::string&, const Vec2f&) const;
+        void setUniform(const std::string&, const int32_t&) const;
+        void setUniform(const std::string&, const uint32_t* value, const size_t& count) const;
     };
 }

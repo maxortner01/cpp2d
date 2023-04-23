@@ -133,21 +133,23 @@ namespace cpp2d
         glUseProgram(0);
     }
 
-    template<>
-    void Shader::setUniform<float>(const std::string& uniformName, const float& uniform) const
+    void Shader::setUniform(const std::string& uniformName, const float& uniform) const
     {
         glUniform1f(glGetUniformLocation(_id, uniformName.c_str()), uniform);
     }
-
-    template<>
-    void Shader::setUniform<Vec2f>(const std::string& uniformName, const Vec2f& uniform) const
+    
+    void Shader::setUniform(const std::string& uniformName, const Vec2f& uniform) const
     {
         glUniform2f(glGetUniformLocation(_id, uniformName.c_str()), uniform.x, uniform.y);
     }
-
-    template<>
-    void Shader::setUniform<int32_t>(const std::string& uniformName, const int32_t& uniform) const
+    
+    void Shader::setUniform(const std::string& uniformName, const int32_t& uniform) const
     {
         glUniform1i(glGetUniformLocation(_id, uniformName.c_str()), uniform);
+    }
+        
+    void Shader::setUniform(const std::string& uniformName, const uint32_t* uniform, const size_t& count) const
+    {
+        glUniform1uiv(glGetUniformLocation(_id, uniformName.c_str()), count, uniform);
     }
 }
