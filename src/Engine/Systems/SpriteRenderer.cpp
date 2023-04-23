@@ -15,11 +15,11 @@ namespace Systems
     layout (location = 3) in vec2 scale;
     layout (location = 4) in float rotation;
     layout (location = 5) in vec4 color;
-    layout (location = 6) in int texid;
+    layout (location = 6) in uint texid;
 
     out vec2 texCoords;
     out vec4 vertexColor;
-    flat out int out_texid;
+    flat out uint out_texid;
 
     uniform float aspectRatio;
 
@@ -44,15 +44,16 @@ namespace Systems
     
     in vec2 texCoords;
     in vec4 vertexColor;   
-    flat in int out_texid;
+    flat in uint out_texid;
 
+    uniform int texture_ids[5];
     uniform sampler2D textures[5];
 
     void main()
     {
         vec4 tex_color = texture(textures[out_texid], texCoords);
 
-        FragColor = vertexColor * (out_texid > 0?tex_color:vec4(1));
+        FragColor = vertexColor * (texture_ids[out_texid] > 0?tex_color:vec4(1));
         if(FragColor.a < 0.1) discard;
     })";
 
@@ -118,7 +119,7 @@ namespace Systems
 
         quad[3].setDynamic(true);
         quad[3].setData(nullptr, 0);
-        quad[3].setAttributeData({ 6, 1, true }); // texture ids
+        quad[3].setAttributeData({ 6, 1, true, 0, 0, DataType::UnsignedInt }); // texture ids
     }
 
     void SpriteRenderer::update(Scene* const scene, double dt) 
@@ -159,13 +160,21 @@ namespace Systems
         std::vector<uint32_t>::iterator it = std::unique(tex_ids.begin(), tex_ids.end());
         tex_ids.resize(std::distance(tex_ids.begin(), it));
 
+        for (uint32_t& texture : textures)
+            texture = (uint32_t)std::distance(tex_ids.begin(), std::find(tex_ids.begin(), tex_ids.end(), texture));
+
+
         if (transforms.size())
         {
             scene->getDrawTexture().bind();
             for (int i = 0; i < tex_ids.size(); i++)
+            {
                 Texture::bindTexture(tex_ids[i], i);
+                spriteShader.setUniform("textures[" + std::to_string(i) + "]", i);
+                spriteShader.setUniform("texture_ids[" + std::to_string(i) + "]", (int)tex_ids[i]);
+            }
 
-            spriteShader.setUniform("textures", &tex_ids[0], tex_ids.size());
+            //spriteShader.setUniform("textures", &tex_ids[0], tex_ids.size());
 
             submitRender(&transforms[0], &colors[0], &textures[0], view.size());
             scene->getDrawTexture().unbind();

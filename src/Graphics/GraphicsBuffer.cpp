@@ -28,7 +28,15 @@ namespace cpp2d
         glBindVertexArray(_vao_id);
         bind();
 
-        glVertexAttribPointer(attribute.index, attribute.element_count, GL_FLOAT, GL_FALSE, attribute.stride, (void*)attribute.offset);
+        GLenum _type;
+        switch (attribute.type)
+        {
+        default:
+        case DataType::Float:       _type = GL_FLOAT;        break;
+        case DataType::UnsignedInt: _type = GL_UNSIGNED_INT; break;
+        }
+
+        glVertexAttribPointer(attribute.index, attribute.element_count, _type, GL_FALSE, attribute.stride, (void*)attribute.offset);
         glEnableVertexAttribArray(attribute.index);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 

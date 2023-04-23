@@ -4,6 +4,12 @@
 
 namespace cpp2d
 {
+    enum class DataType
+    {
+        Float,
+        UnsignedInt
+    };
+
     struct AttributeData
     {
         uint32_t index = 0;
@@ -11,6 +17,7 @@ namespace cpp2d
         bool     instanced = false;
         uint32_t stride = 0;
         size_t   offset = 0;
+        DataType type   = DataType::Float;
     };
 
     class GraphicsBuffer

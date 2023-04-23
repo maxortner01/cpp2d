@@ -55,6 +55,7 @@ namespace cpp2d
         // Set uniforms
         void setUniform(const std::string&, const float&) const;
         void setUniform(const std::string&, const Vec2f&) const;
+        void setUniform(const std::string&, const uint32_t&) const;
         void setUniform(const std::string&, const int32_t&) const;
         void setUniform(const std::string&, const uint32_t* value, const size_t& count) const;
     };
