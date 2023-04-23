@@ -12,7 +12,8 @@ set(CMAKE_CXX_STANDARD 17)
 # The necissary include directories
 include_directories(
     ${CMAKE_SOURCE_DIR}/include 
-    ${CMAKE_SOURCE_DIR}/extern/entt/single_include
+    ${CMAKE_SOURCE_DIR}/include/entt/single_include
+    ${CMAKE_SOURCE_DIR}/extern/glew/include 
 )
 
 # Set the location of the graphics lib
@@ -21,7 +22,9 @@ link_directories(
 )
 
 # All we need the engine.cpp file
-add_library(cpp2d-engine SHARED ../Engine.cpp)
+add_library(cpp2d-engine SHARED ../Engine.cpp ${CMAKE_SOURCE_DIR}/extern/glew/src/glew.c)
+
+find_library(OPENGL OpenGL)
 
 # We wish to link to the graphics library
-target_link_libraries(cpp2d-engine libcpp2d-graphics.dylib)
+target_link_libraries(cpp2d-engine ${OPENGL} libcpp2d-graphics.dylib)

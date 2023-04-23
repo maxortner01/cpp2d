@@ -33,8 +33,11 @@ namespace cpp2d
         ShaderType* _types;
 
     public:
+        Shader(std::initializer_list<ShaderType> type);
         Shader(const ShaderType* const types, const uint32_t& shaderCount);
         ~Shader();
+
+        void create();
 
         int32_t typeIndex(const ShaderType& type) const;
 

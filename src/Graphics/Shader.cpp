@@ -6,6 +6,10 @@
 
 namespace cpp2d
 {
+    Shader::Shader(std::initializer_list<ShaderType> type) :
+        Shader(type.begin(), type.size())
+    {   }
+
     Shader::Shader(const ShaderType* const types, const uint32_t& shaderCount) :
         Utility::State<ShaderState>(ShaderState::Uncompiled),
         _shader_count(shaderCount),

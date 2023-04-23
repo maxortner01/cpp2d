@@ -1,5 +1,7 @@
 #pragma once
 
+#include <entt/entt.hpp>
+
 #include "../util.h"
 
 namespace cpp2d
@@ -8,11 +10,23 @@ namespace cpp2d
 
     class Entity
     {
-        const Scene* const _scene;
-        const uint32_t _uid;
+        Scene* const _scene;
+        const entt::entity _uid;
 
     public:
-        Entity(const Scene* const scene);
+        Entity(Scene* const scene);
         virtual ~Entity();
+
+        template<typename T>
+        T& addComponent()
+        {
+            return _scene->addComponent<T>(_uid);
+        }
+
+        template<typename T>
+        T& getComponent()
+        {
+            return _scene->getComponent<T>(_uid);
+        }
     };
 }

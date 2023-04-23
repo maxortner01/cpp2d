@@ -20,6 +20,8 @@ namespace cpp2d
 
         void fromFile(const std::string& filename);
 
+        static void bindTexture(const uint32_t& id, const uint32_t& layer);
+
         uint32_t getID() const;
         void bind(const uint32_t& layer = 0);
         void unbind();

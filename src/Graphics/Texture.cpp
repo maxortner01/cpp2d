@@ -70,6 +70,12 @@ namespace cpp2d
         stbi_image_free(data);
     }
 
+    void Texture::bindTexture(const uint32_t& id, const uint32_t& layer)
+    {
+        glActiveTexture(GL_TEXTURE0 + layer);
+        glBindTexture(GL_TEXTURE_2D, id);
+    }
+
     uint32_t Texture::getID() const
     {
         return _id;
@@ -78,8 +84,7 @@ namespace cpp2d
     void Texture::bind(const uint32_t& layer)
     {
         _current_layer = layer;
-        glActiveTexture(GL_TEXTURE0 + layer);
-        glBindTexture(GL_TEXTURE_2D, _id);
+        Texture::bindTexture(_id, layer);
     }
 
     void Texture::unbind()

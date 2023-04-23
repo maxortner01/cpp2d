@@ -8,7 +8,7 @@ Currently, GLFW is required for this to work, but I'll be removing this requirem
 I will also eventually implement Vulkan, but for now OpenGL will do.
 
 ## Current Structure
-There's a `Graphics` folder and an `Engine` folder. Each compiles into dynamic library files which are found in the `lib` folder. The `libcpp2d-engine` library requires the `libcpp2d-graphics` library, but the graphics library can be used alone. Including `cpp2d/Engine.h` also, by default, includes `cpp2d/Graphics.h`. The raw, barebones graphics objects and functionality is in the Graphics library. The engine provides more functionality on top of that, including an entity-component system powered by [ENTT](https://github.com/skypjack/entt).
+There's a `Graphics` folder and an `Engine` folder. Each compiles into dynamic library files which are found in the `lib` folder. The `libcpp2d-engine` library requires the `libcpp2d-graphics` library, but the graphics library can be used alone. Including `cpp2d/Engine.h` also, by default, includes `cpp2d/Graphics.h`. The raw, barebones graphics objects and functionality is in the Graphics library. The engine provides more functionality on top of that, including an entity-component system powered by [ENTT](https://github.com/skypjack/entt). Currently ENTT is required as an include to your client project, which I don't like, but it's packaged in as a submodule and is located in `include/entt`. So, in your build, add `include/entt/single_include` to your include directories.
 
 ## What doesn't work
 Currently, in order to build, I need to add a make command to the `src/CMakeLists.txt` that runs for `extern/glew/auto` which retreives the OpenGL extension files. Other than that, the compile should run on MacOS perfectly.

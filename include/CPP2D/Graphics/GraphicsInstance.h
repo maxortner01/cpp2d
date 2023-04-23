@@ -22,5 +22,7 @@ namespace cpp2d
         void init();
 
         bool isInitialized() const;
+
+        void drawInstanced(const uint32_t& indexCount, const uint32_t& instanceCount) const;
     };
 }

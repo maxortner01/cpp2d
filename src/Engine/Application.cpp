@@ -60,6 +60,11 @@ namespace cpp2d
 
     void Application::run()
     {
+        const uint32_t FPS_COUNT = 50;
+        uint32_t fps_list[FPS_COUNT] = { 0 };
+        uint32_t fps_index = 0;
+
+        Timer timer;
         while (_window.isOpen())
         {
             if (!scenes.size()) { _window.close(); continue; }
@@ -89,6 +94,10 @@ namespace cpp2d
                 DrawTexture* surface = surfaces[surfaces.size() - 1];
                 
                 surface->clear();
+                std::vector<System*>& systems = scenes[i]->getSystems();
+                for (System* system : systems)
+                    system->update(scenes[i], timer.getTime());
+
                 scenes[i]->update(surface);
 
                 Quad quad;
@@ -103,6 +112,16 @@ namespace cpp2d
 
                 _screen_renderer.render(_window, _window_shader, quad);
             }
+
+            fps_list[(fps_index++) % FPS_COUNT] = (int)(1.0 / timer.getTime());
+            timer.restart();
+
+            uint32_t avg_fps = 0;
+            for (uint32_t i = 0; i < FPS_COUNT; i++) avg_fps += fps_list[i];
+            avg_fps /= (float)FPS_COUNT;
+
+            _window.setTitle("FPS: " + std::to_string(avg_fps));
+
             _screen_renderer.end();
 
             _window.display();

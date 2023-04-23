@@ -34,4 +34,9 @@ namespace cpp2d
     {
         return _init;
     }
+
+    void GraphicsInstance::drawInstanced(const uint32_t& indexCount, const uint32_t& instanceCount) const
+    {
+        glDrawElementsInstanced(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr, instanceCount);
+    }
 }

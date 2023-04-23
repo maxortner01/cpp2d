@@ -6,11 +6,11 @@ namespace cpp2d
 {
     struct AttributeData
     {
-        uint32_t index;
-        uint32_t element_count;
-        bool     instanced;
-        uint32_t stride;
-        size_t   offset;
+        uint32_t index = 0;
+        uint32_t element_count = 0;
+        bool     instanced = false;
+        uint32_t stride = 0;
+        size_t   offset = 0;
     };
 
     class GraphicsBuffer

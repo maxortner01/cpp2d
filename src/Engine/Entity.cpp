@@ -2,7 +2,7 @@
 
 namespace cpp2d
 {
-    Entity::Entity(const Scene* const scene) :
+    Entity::Entity(Scene* const scene) :
         _scene(scene),
         _uid(scene->createEntity())
     {
