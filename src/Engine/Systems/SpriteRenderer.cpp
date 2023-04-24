@@ -7,6 +7,9 @@ namespace cpp2d
 {
 namespace Systems
 {
+
+#pragma region SHADER_CODE
+
     static const char* vertex = R"(
     #version 330 core
     layout (location = 0) in vec2 aPos;
@@ -16,7 +19,9 @@ namespace Systems
     layout (location = 4) in float rotation;
     layout (location = 5) in vec4 color;
     layout (location = 6) in uint texid;
+    layout (location = 7) in vec4 rect;
 
+    out vec4 texRect;
     out vec2 texCoords;
     out vec4 vertexColor;
     flat out uint out_texid;
@@ -32,16 +37,18 @@ namespace Systems
     {
         vec2 pos = ( ROTATION_MATRIX * (aPos * scale) + position );
 
-        gl_Position = vec4(pos.x / aspectRatio, pos.y, 0.0, 1.0); 
+        gl_Position = vec4(pos.x / aspectRatio, pos.y, 0.0, 6); 
         vertexColor = color; 
         out_texid   = texid;
         texCoords   = texcoords;
+        texRect     = rect;
     })";
 
     static const char* fragment = R"(
     #version 330 core
     out vec4 FragColor;
     
+    in vec4 texRect;
     in vec2 texCoords;
     in vec4 vertexColor;   
     flat in uint out_texid;
@@ -51,37 +58,19 @@ namespace Systems
 
     void main()
     {
-        vec4 tex_color = texture(textures[out_texid], texCoords);
+        vec4 tex_color = texture(textures[out_texid], texCoords * texRect.zw + texRect.xy);
 
         FragColor = vertexColor * (texture_ids[out_texid] > 0?tex_color:vec4(1));
         if(FragColor.a < 0.1) discard;
     })";
 
-    void SpriteRenderer::submitRender(Transform* transforms, Color* colors, uint32_t* textures, size_t count)
+#pragma endregion SHADER_CODE
+
+#pragma region SPRITE_VERTEX_ARRAY
+
+    SpriteVertexArray::SpriteVertexArray(const uint32_t& extraBuffers) :
+        VertexArray(1 + extraBuffers)
     {
-        spriteShader.bind();
-        
-        quad[1].setData(transforms, sizeof(Transform) * count);
-        quad[2].setData(colors, sizeof(Color) * count);
-        quad[3].setData(textures, sizeof(uint32_t) * count);
-
-        quad.bind();
-        quad[0].bind();
-        GraphicsInstance::get().drawInstanced(quad.getIndexCount(), count);
-
-        spriteShader.unbind();
-    }
-
-    SpriteRenderer::SpriteRenderer() :
-        quad(4),
-        spriteShader({ ShaderType::Vertex, ShaderType::Fragment })
-    {
-        // Construct the sprite shader
-        spriteShader.fromString(ShaderType::Vertex,   vertex);
-        spriteShader.fromString(ShaderType::Fragment, fragment);
-        spriteShader.link();
-
-        // Construct the quad vertex array
         struct Vertex
         {
             Vec2f position;
@@ -99,86 +88,101 @@ namespace Systems
             0, 1, 2, 2, 3, 0
         };
 
-        quad.setIndices(&indices[0], 6);
-        quad[0].setDynamic(false);
-        quad[0].setData(vertices, sizeof(Vertex) * 4);
-        quad[0].setAttributeData({ 0, 2, false, sizeof(Vertex), 0 });
-        quad[0].setAttributeData({ 1, 2, false, sizeof(Vertex), sizeof(Vec2f) });
+        setIndices(&indices[0], 6);
+        at(0).setDynamic(false);
+        at(0).setData(vertices, sizeof(Vertex) * 4);
+        at(0).setAttributeData({ 0, 2, false, sizeof(Vertex), 0 });
+        at(0).setAttributeData({ 1, 2, false, sizeof(Vertex), sizeof(Vec2f) });
+    }
 
+#pragma endregion SPRITE_VERTEX_ARRAY
+
+#pragma region SPRITE_SHADER
+
+    SpriteShader::SpriteShader() :
+        Shader({ ShaderType::Vertex, ShaderType::Fragment })
+    {
+        fromString(ShaderType::Vertex, vertex);
+        fromString(ShaderType::Fragment, fragment);
+        link();
+    }
+
+#pragma endregion SPRITE_SHADER
+
+#pragma region DYNAMIC_SPRITE_RENDERER
+
+    void SpriteRenderer::submitRender(Sprite* const sprites, const size_t count)
+    {
+        SpriteShader::get().bind();
+        
+        /*
+        quad[1].setData(transforms, sizeof(Transform) * count);
+        quad[2].setData(colors, sizeof(Color) * count);
+        quad[3].setData(textures, sizeof(uint32_t) * count);
+        quad[4].setData(rects, sizeof(FloatRect) * count);*/
+        quad[1].setData(sprites, sizeof(Sprite) * count);
+
+        quad.bind();
+        quad[0].bind();
+        GraphicsInstance::get().drawInstanced(quad.getIndexCount(), count);
+
+        SpriteShader::get().unbind();
+    }
+
+    SpriteRenderer::SpriteRenderer() :
+        quad(1)
+    {
         // Transform data structure
         quad[1].setDynamic(true);
         quad[1].setData(nullptr, 0);
-        quad[1].setAttributeData({2, 2, true, sizeof(Transform), 0 * sizeof(Vec2f)}); // position
-        quad[1].setAttributeData({3, 2, true, sizeof(Transform), 1 * sizeof(Vec2f)}); // scale
-        quad[1].setAttributeData({4, 1, true, sizeof(Transform), 2 * sizeof(Vec2f)}); // rotation
-
-        // Color data structure
-        quad[2].setDynamic(true);
-        quad[2].setData(nullptr, 0);
-        quad[2].setAttributeData({ 5, 4, true });
-
-        quad[3].setDynamic(true);
-        quad[3].setData(nullptr, 0);
-        quad[3].setAttributeData({ 6, 1, true, 0, 0, DataType::UnsignedInt }); // texture ids
+        quad[1].setAttributeData({ 2, 2, true, sizeof(Sprite), offsetof(struct Sprite, transform) + offsetof(struct Transform, position)}); // position
+        quad[1].setAttributeData({ 3, 2, true, sizeof(Sprite), offsetof(struct Sprite, transform) + offsetof(struct Transform, scale)}); // scale
+        quad[1].setAttributeData({ 4, 1, true, sizeof(Sprite), offsetof(struct Sprite, transform) + offsetof(struct Transform, rotation)}); // rotation
+        quad[1].setAttributeData({ 5, 4, true, sizeof(Sprite), offsetof(struct Sprite, color)}); // color
+        quad[1].setAttributeData({ 6, 1, true, sizeof(Sprite), offsetof(struct Sprite, texture), DataType::UnsignedInt}); // texture index
+        quad[1].setAttributeData({ 7, 4, true, sizeof(Sprite), offsetof(struct Sprite, rect) });
     }
 
+    void SpriteRenderer::setTextureList(Texture* textureList, const uint32_t& count)
+    {
+        texture_list  = textureList;
+        texture_count = count;
+    }
+
+    // The best I could do right now without totally recapturing the Sprite component pointers
+    // on the heap every frame. The size_hint seems to be pretty close
     void SpriteRenderer::update(Scene* const scene, double dt) 
     {
-        scene->sort<Sprite>([](const auto& lhs, const auto& rhs) {
-            return lhs.texture < rhs.texture;
+        auto view = scene->view<Sprite>(entt::exclude<Static>);
+
+        std::vector<Sprite> sprites;
+        sprites.reserve(view.size_hint());
+
+        view.each([ &sprites ](auto entity, Sprite& sprite) {
+            sprites.push_back(sprite);
         });
-
-        auto view = scene->view<Sprite>();
-        if (!view.size()) return;
-
-        std::vector<Sprite*> sprites(view.size());
-        uint32_t enumerator = 0;
-        for (auto entity : view) sprites[enumerator++] = &view.get<Sprite>(entity);
-
-        std::vector<uint32_t> textures;
-        std::vector<Color> colors;
-        std::vector<Systems::Transform> transforms;
-
-        textures.reserve(view.size());
-        colors.reserve(view.size());
-        transforms.reserve(view.size());
+        
+        if (!sprites.size()) return;
 
         const float aspectRatio = (float)scene->getSize().x / (float)scene->getSize().y;
         // Not sure if/why uniform needs to be bound...
-        spriteShader.bind();
-        spriteShader.setUniform("aspectRatio", aspectRatio);
-        
-        for (auto& sprite : sprites)
+        SpriteShader::get().bind();
+        SpriteShader::get().setUniform("aspectRatio", aspectRatio);
+
+        // Bind texture info
+        scene->getDrawTexture().bind();
+        for (int i = 0; i < texture_count; i++)
         {
-            textures.push_back(sprite->texture);
-            colors.push_back(sprite->color);
-            transforms.push_back(sprite->transform);
+            texture_list[i].bind(i);
+            SpriteShader::get().setUniform("textures[" + std::to_string(i) + "]", i);
+            SpriteShader::get().setUniform("texture_ids[" + std::to_string(i) + "]", (int)texture_list[i].getID());
         }
 
-        // Get the unique texture ids
-        std::vector<uint32_t> tex_ids = textures;
-        std::vector<uint32_t>::iterator it = std::unique(tex_ids.begin(), tex_ids.end());
-        tex_ids.resize(std::distance(tex_ids.begin(), it));
-
-        for (uint32_t& texture : textures)
-            texture = (uint32_t)std::distance(tex_ids.begin(), std::find(tex_ids.begin(), tex_ids.end(), texture));
-
-
-        if (transforms.size())
-        {
-            scene->getDrawTexture().bind();
-            for (int i = 0; i < tex_ids.size(); i++)
-            {
-                Texture::bindTexture(tex_ids[i], i);
-                spriteShader.setUniform("textures[" + std::to_string(i) + "]", i);
-                spriteShader.setUniform("texture_ids[" + std::to_string(i) + "]", (int)tex_ids[i]);
-            }
-
-            //spriteShader.setUniform("textures", &tex_ids[0], tex_ids.size());
-
-            submitRender(&transforms[0], &colors[0], &textures[0], view.size());
-            scene->getDrawTexture().unbind();
-        }
+        submitRender(&sprites[0], sprites.size());
+        scene->getDrawTexture().unbind();
     }
+
+#pragma endregion DYNAMIC_SPRITE_RENDERER
+
 }
 }

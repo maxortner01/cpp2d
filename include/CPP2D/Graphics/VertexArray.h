@@ -29,6 +29,7 @@ namespace cpp2d
 
         const GraphicsBuffer* const getIndexBuffer() const;
 
+        GraphicsBuffer& at(const uint32_t& index) const;
         GraphicsBuffer& operator[](const uint32_t& index) const;
     };
 }

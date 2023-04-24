@@ -38,11 +38,18 @@ namespace cpp2d
         using entt::registry::view;
         using entt::registry::sort;
 
-        template<typename T, typename... Args>
-        T& addSystem(Args... args)
+        template<typename T>
+        T& emplaceSystem()
         {
-            systems.push_back(new T(args...));
-            return *(T*)systems[systems.size() - 1];
+            static T* val = nullptr;
+
+            if (!val)
+            {
+                val = new T();
+                systems.push_back(val);
+            }
+
+            return *val;
         }
 
         std::vector<System*>& getSystems();

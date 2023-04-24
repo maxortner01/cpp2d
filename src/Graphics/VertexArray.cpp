@@ -60,6 +60,12 @@ namespace cpp2d
         return nullptr;
     }
 
+    GraphicsBuffer& VertexArray::at(const uint32_t& index) const
+    {
+        assert(index < _buffer_count);
+        return *buffers[index];
+    }
+
     GraphicsBuffer& VertexArray::operator[](const uint32_t& index) const
     {
         assert(index < _buffer_count);
