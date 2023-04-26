@@ -62,13 +62,13 @@ namespace cpp2d
 
     GraphicsBuffer& VertexArray::at(const U32& index) const
     {
-        cppAssert(index < _buffer_count, "Index (%u) less than buffer count (%u).", index, _buffer_count);
+        cppAssert(index > _buffer_count, "Index (%u) greater than buffer count (%u).", index, _buffer_count);
         return *buffers[index];
     }
 
     GraphicsBuffer& VertexArray::operator[](const U32& index) const
     {
-        cppAssert(index < _buffer_count, "Index (%u) less than buffer count (%u).", index, _buffer_count);
+        cppAssert(index > _buffer_count, "Index (%u) greater than buffer count (%u).", index, _buffer_count);
         return *buffers[index];
     }
 }

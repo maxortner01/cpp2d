@@ -27,4 +27,5 @@
 #define R32 float
 #define R64 double
 
-#define cppAssert(expr, ...) if (expr){ printf("cppAssert triggered in %s on line %i.\n", __FILE__, __LINE__); printf(__VA_ARGS__); exit(1); }
+// Issues with this FIX
+#define cppAssert(expr, ...) if (!expr){ printf("cppAssert triggered in %s on line %i.\n", __FILE__, __LINE__); printf(__VA_ARGS__); exit(1); }

@@ -7,7 +7,7 @@ namespace cpp2d
 
     void System::addChild(const System* const child)
     {
-        cppAssert(child->hasChild(this), "Can not add child to a child system!");
+        cppAssert(!child->hasChild(this), "Can not add child to a child system!");
 
         _child_systems.push_back(child);  
     }
