@@ -60,10 +60,6 @@ namespace cpp2d
 
     void Application::run()
     {
-        const uint32_t FPS_COUNT = 50;
-        uint32_t fps_list[FPS_COUNT] = { 0 };
-        uint32_t fps_index = 0;
-
         Timer timer;
         while (_window.isOpen())
         {
@@ -82,23 +78,36 @@ namespace cpp2d
 
             // Now we can clear the window and start updating/rendering each of
             // the layers
-            _window.clear();
+            _window.clear(); // 6 allocations
 
             const float aspectRatio = (float)_window.getSize().x / (float)_window.getSize().y;
 
             // Now we need to render each layer to the window
             //std::vector<Quad> layers(scenes.size());
             _screen_renderer.begin({});
-            for (uint32_t i = 0; i < scenes.size(); i++)
+            for (U32 i = 0; i < scenes.size(); i++)
             {
                 DrawTexture* surface = surfaces[surfaces.size() - 1];
                 
-                surface->clear();
+                // Sort Systems
                 std::vector<System*>& systems = scenes[i]->getSystems();
+                if (scenes[i]->_systems_modified)
+                {
+                    std::sort(systems.begin(), systems.end(),
+                        [](const System* const a, const System* const b) {
+                            return !a->hasChild(b);
+                        });
+
+                    scenes[i]->_systems_modified = false;
+                }
+
+                surface->clear();
                 for (System* system : systems)
                     system->update(scenes[i], timer.getTime());
 
-                scenes[i]->update(surface);
+                std::cout << "\n";
+
+                scenes[i]->update(timer.getTime());
 
                 Quad quad;
                 quad.setPosition(Vec2f(0, 0));
@@ -111,20 +120,16 @@ namespace cpp2d
                 _window_shader.setUniform("tex", 0);
 
                 _screen_renderer.render(_window, _window_shader, quad);
+                surface->getTexture().unbind();
             }
 
-            fps_list[(fps_index++) % FPS_COUNT] = (int)(1.0 / timer.getTime());
-            timer.restart();
-
-            uint32_t avg_fps = 0;
-            for (uint32_t i = 0; i < FPS_COUNT; i++) avg_fps += fps_list[i];
-            avg_fps /= (float)FPS_COUNT;
-
-            _window.setTitle("FPS: " + std::to_string(avg_fps));
+            _window.setTitle("FPS: " + std::to_string(Allocators::FrameProfiler::get().getFrameRate()));
 
             _screen_renderer.end();
 
             _window.display();
+
+            Allocators::FrameProfiler::get().endFrame();
         }
     }
 }

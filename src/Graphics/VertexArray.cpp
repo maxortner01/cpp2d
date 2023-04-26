@@ -4,14 +4,14 @@
 
 namespace cpp2d
 {
-    VertexArray::VertexArray(const uint32_t& bufferCount) :
+    VertexArray::VertexArray(const U32& bufferCount) :
         buffers(nullptr), _buffer_ids(nullptr), _index_count(0), _buffer_count(bufferCount)
     {
         GraphicsInstance::get().init();
         glGenVertexArrays(1, &_id);
 
         buffers     = (GraphicsBuffer**)std::malloc(sizeof(void*) * (bufferCount + 1));
-        _buffer_ids = (uint32_t*)       std::malloc(sizeof(void*) * (bufferCount + 1));
+        _buffer_ids = (U32*)       std::malloc(sizeof(void*) * (bufferCount + 1));
 
         bind();
         glGenBuffers(bufferCount + 1, _buffer_ids);
@@ -43,32 +43,32 @@ namespace cpp2d
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffer_ids[_buffer_count]);
     }
 
-    void VertexArray::setIndices(const uint32_t* const indexData, const uint32_t& count)
+    void VertexArray::setIndices(const U32* const indexData, const U32& count)
     {
         _index_count = count;
-        buffers[_buffer_count]->setData(indexData, sizeof(uint32_t) * count);
+        buffers[_buffer_count]->setData(indexData, sizeof(U32) * count);
     }
 
-    uint32_t VertexArray::getIndexCount() const
+    U32 VertexArray::getIndexCount() const
     {
         return _index_count;
     }
 
-    const uint32_t* const VertexArray::getIndices() const
+    const U32* const VertexArray::getIndices() const
     {
         // do a glmap to get data
         return nullptr;
     }
 
-    GraphicsBuffer& VertexArray::at(const uint32_t& index) const
+    GraphicsBuffer& VertexArray::at(const U32& index) const
     {
-        assert(index < _buffer_count);
+        cppAssert(index < _buffer_count, "Index (%u) less than buffer count (%u).", index, _buffer_count);
         return *buffers[index];
     }
 
-    GraphicsBuffer& VertexArray::operator[](const uint32_t& index) const
+    GraphicsBuffer& VertexArray::operator[](const U32& index) const
     {
-        assert(index < _buffer_count);
+        cppAssert(index < _buffer_count, "Index (%u) less than buffer count (%u).", index, _buffer_count);
         return *buffers[index];
     }
 }

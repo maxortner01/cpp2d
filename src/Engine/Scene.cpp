@@ -4,37 +4,32 @@ namespace cpp2d
 {
     Scene::Scene(const Vec2u& size) :
         _texture(size), 
+        _systems_modified(false),
         Utility::State<SceneState>(SceneState::Running)
     {   }
 
     Scene::~Scene()
-    {
-        this->clear();
-    }
+    {  this->clear();  }
 
     entt::entity Scene::createEntity()
-    {
-        return create();
-    }
+    {  return create();  }
 
     void Scene::destroyEntity(const entt::entity& entity)
-    {
-        destroy(entity);
-    }
+    {  destroy(entity);  }
+
+    bool Scene::systemsModified() const
+    {  return _systems_modified;  }
 
     std::vector<System*>& Scene::getSystems()
-    {
-        return systems;
-    }
+    {  return systems;  }
 
     Vec2u Scene::getSize() const
-    {
-        return _texture.getSize();
-    }
+    {  return _texture.getSize();  }
 
     DrawTexture& Scene::getDrawTexture() 
-    {
-        return _texture;
-    }
+    {  return _texture;  }
+
+    float Scene::aspectRatio() const
+    {  return (float)_texture.getSize().x / (float)_texture.getSize().y;  }
 
 }

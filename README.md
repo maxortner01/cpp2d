@@ -12,6 +12,3 @@ There's a `Graphics` folder and an `Engine` folder. Each compiles into dynamic l
 
 ## What doesn't work
 Currently, in order to build, I need to add a make command to the `src/CMakeLists.txt` that runs for `extern/glew/auto` which retreives the OpenGL extension files. Other than that, the compile should run on MacOS perfectly.
-
-## Changelog
-- Just added instancing

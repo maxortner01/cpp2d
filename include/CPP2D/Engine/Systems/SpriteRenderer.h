@@ -20,6 +20,7 @@ namespace Systems
 
     struct Sprite
     {
+        float     z = 0.f;
         uint32_t  texture = 0;
         Color     color   = { 1, 1, 1, 1 };
         Transform transform;
@@ -52,8 +53,20 @@ namespace Systems
     class SpriteRenderer :
         public System
     {
-        uint32_t texture_count;
-        Texture* texture_list;
+    public:
+        struct SceneData
+        {
+            Texture* textureList;
+            uint32_t textureCount;
+            struct 
+            {
+                Vec2f position = Vec2f(0, 0);
+                float scale = 1.f;
+            } camera;
+        };
+
+    private:
+        SceneData _scene_data;
 
         SpriteVertexArray quad;
 
@@ -61,6 +74,8 @@ namespace Systems
 
     public:
         SpriteRenderer();
+
+        SceneData& getSceneData();
 
         void setTextureList(Texture* textureList, const uint32_t& count);
 

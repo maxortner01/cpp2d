@@ -31,7 +31,7 @@ namespace cpp2d
 
     void Texture::create(const Vec2u& size)
     {
-        assert(!_id);
+        cppAssert(!_id, "Texture already created.");
         setSize(size);
 
         glGenTextures(1, &_id);
@@ -53,7 +53,7 @@ namespace cpp2d
 
         int x, y, comp;
         void* data = stbi_load(filename.c_str(), &x, &y, &comp, STBI_rgb_alpha);
-        assert(data);
+        cppAssert(data, "Failed to load file '%s'.", filename.c_str());
 
         create({ (uint32_t)x, (uint32_t)y });
 

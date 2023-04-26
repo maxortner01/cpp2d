@@ -39,7 +39,7 @@ namespace cpp2d
 
     void DrawTexture::create(const Vec2u& size)
     {
-        assert(!_id);
+        cppAssert(!_id, "Texture already created.");
 
         setSize(size);
         glGenFramebuffers(1, &_id);
@@ -51,7 +51,7 @@ namespace cpp2d
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _color.getID(), 0);
         _color.unbind();
 
-        assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+        cppAssert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer failed to create.");
 
         unbind();
     }

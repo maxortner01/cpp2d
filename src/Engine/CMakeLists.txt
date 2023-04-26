@@ -25,4 +25,4 @@ link_directories(
 add_library(cpp2d-engine SHARED ../Engine.cpp)
 
 # We wish to link to the graphics library
-target_link_libraries(cpp2d-engine ${OPENGL} libcpp2d-graphics.dylib)
+target_link_libraries(cpp2d-engine ${OPENGL} libcpp2d-graphics.dylib libcpp2d-memory.dylib)

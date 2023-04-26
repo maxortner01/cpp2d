@@ -26,7 +26,14 @@ namespace Systems
     out vec4 vertexColor;
     flat out uint out_texid;
 
-    uniform float aspectRatio;
+    struct Camera
+    {
+        vec2  position;
+        float scale;
+    };
+
+    uniform Camera camera;
+    uniform float  aspectRatio;
 
     mat2 ROTATION_MATRIX = mat2(
         cos(rotation), -sin(rotation),
@@ -35,9 +42,9 @@ namespace Systems
 
     void main()
     {
-        vec2 pos = ( ROTATION_MATRIX * (aPos * scale) + position );
+        vec2 pos = ( ROTATION_MATRIX * (aPos * scale) + position ) * camera.scale - camera.position;
 
-        gl_Position = vec4(pos.x / aspectRatio, pos.y, 0.0, 6); 
+        gl_Position = vec4(pos.x / aspectRatio, pos.y, 0.0, 1); 
         vertexColor = color; 
         out_texid   = texid;
         texCoords   = texcoords;
@@ -143,16 +150,23 @@ namespace Systems
         quad[1].setAttributeData({ 7, 4, true, sizeof(Sprite), offsetof(struct Sprite, rect) });
     }
 
+    SpriteRenderer::SceneData& SpriteRenderer::getSceneData()
+    {
+        return _scene_data;
+    }
+
     void SpriteRenderer::setTextureList(Texture* textureList, const uint32_t& count)
     {
-        texture_list  = textureList;
-        texture_count = count;
+        _scene_data.textureList  = textureList;
+        _scene_data.textureCount = count;
     }
 
     // The best I could do right now without totally recapturing the Sprite component pointers
     // on the heap every frame. The size_hint seems to be pretty close
     void SpriteRenderer::update(Scene* const scene, double dt) 
     {
+        std::cout << "running sprite renderer\n";
+
         auto view = scene->view<Sprite>(entt::exclude<Static>);
 
         std::vector<Sprite> sprites;
@@ -161,6 +175,10 @@ namespace Systems
         view.each([ &sprites ](auto entity, Sprite& sprite) {
             sprites.push_back(sprite);
         });
+
+        // possibly use reactive callbacks to perform this sort only when the position
+        // of sprites change
+        std::sort(sprites.begin(), sprites.end(), [](Sprite& a, Sprite& b) { return a.z > b.z; });
         
         if (!sprites.size()) return;
 
@@ -168,14 +186,16 @@ namespace Systems
         // Not sure if/why uniform needs to be bound...
         SpriteShader::get().bind();
         SpriteShader::get().setUniform("aspectRatio", aspectRatio);
+        SpriteShader::get().setUniform("camera.position", _scene_data.camera.position);
+        SpriteShader::get().setUniform("camera.scale",    _scene_data.camera.scale);
 
         // Bind texture info
         scene->getDrawTexture().bind();
-        for (int i = 0; i < texture_count; i++)
+        for (int i = 0; i < _scene_data.textureCount; i++)
         {
-            texture_list[i].bind(i);
+            _scene_data.textureList[i].bind(i);
             SpriteShader::get().setUniform("textures[" + std::to_string(i) + "]", i);
-            SpriteShader::get().setUniform("texture_ids[" + std::to_string(i) + "]", (int)texture_list[i].getID());
+            SpriteShader::get().setUniform("texture_ids[" + std::to_string(i) + "]", (int)_scene_data.textureList[i].getID());
         }
 
         submitRender(&sprites[0], sprites.size());

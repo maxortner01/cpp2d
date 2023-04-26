@@ -12,7 +12,10 @@ namespace Utility
         {
             static T* instance = nullptr;
 
-            if (!instance) instance = new T();
+            if (!instance) 
+            {
+                instance = new T();
+            }
 
             return *instance;
         }

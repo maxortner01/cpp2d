@@ -9,27 +9,27 @@ namespace cpp2d
     {
         // Data
         GraphicsBuffer** buffers;
-        //uint32_t* indices;
+        //U32* indices;
 
         // Reference info
-        const uint32_t _buffer_count;
-        uint32_t  _index_count;
-        uint32_t  _id;
-        uint32_t* _buffer_ids;
+        const U32 _buffer_count;
+        U32  _index_count;
+        U32  _id;
+        U32* _buffer_ids;
 
     public:
-        VertexArray(const uint32_t& bufferCount);
+        VertexArray(const U32& bufferCount);
         ~VertexArray();
 
         void bind() const;
 
-        void     setIndices(const uint32_t* const indexData, const uint32_t& count);
-        uint32_t getIndexCount() const;
-        const uint32_t* const getIndices() const;
+        void setIndices(const U32* const indexData, const U32& count);
+        U32  getIndexCount() const;
+        const U32* const getIndices() const;
 
         const GraphicsBuffer* const getIndexBuffer() const;
 
-        GraphicsBuffer& at(const uint32_t& index) const;
-        GraphicsBuffer& operator[](const uint32_t& index) const;
+        GraphicsBuffer& at(const U32& index) const;
+        GraphicsBuffer& operator[](const U32& index) const;
     };
 }

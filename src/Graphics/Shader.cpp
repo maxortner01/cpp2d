@@ -40,14 +40,14 @@ namespace cpp2d
     void Shader::fromFile(const ShaderType& type, const std::string& filename) 
     {
         // Make sure the requested shader type exists
-        assert(typeIndex(type) != -1);
+        cppAssert(typeIndex(type) != -1, "Requested shader type not present.");
 
         setState(ShaderState::InProgress);
 
         std::ifstream file(filename);
 
         // Make sure file exists
-        assert(file);
+        cppAssert(file, "File '%s' not found!", filename.c_str());
 
         // Go through the lines (probably a better way to do this)
         std::string contents;
@@ -64,7 +64,7 @@ namespace cpp2d
     {
         // Make sure the requested shader type exists
         int32_t id_index = typeIndex(type);
-        assert(id_index != -1);
+        cppAssert(id_index != -1, "Requested shader type not present.");
 
         setState(ShaderState::InProgress);
 
