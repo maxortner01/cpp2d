@@ -1,7 +1,7 @@
 #include <cpp2d/Graphics.h>
 
 #include <iostream>
-#include <GL/glew.h>
+#include <VkBootstrap.h>
 #include <GLFW/glfw3.h>
 
 namespace cpp2d
@@ -15,11 +15,17 @@ namespace cpp2d
             return;
         }
         
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+#   ifdef GDI_OPENGL
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#   elif GDI_VULKAN
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+#   endif
 
-#   ifdef __APPLE__
+#   if defined(__APPLE__) && defined(GDI_OPENGL)
         // Because Apple hates graphics programmers
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #   endif
@@ -38,16 +44,36 @@ namespace cpp2d
         glfwMakeContextCurrent(_window_instance);
         glfwSwapInterval( 0 );
 
-        GraphicsInstance::get().init();
-        glViewport(0, 0, _width, _height);
-
         _window = _window_instance;
+
+        //Graphics::GDI::get().init(_window);
+        //GraphicsInstance::get().init();
+        //GraphicsInstance::get().setViewport({ 0, 0, (U32__width, (U32)_height });
+
         setState(WindowState::Success);
     }
 
     Window::~Window()
     {
-        glfwDestroyWindow((GLFWwindow*)_window);
+#   ifdef GDI_VULKAN
+        std::cout << (U32)getState() << "\n";
+        if (getState() == WindowState::Success && Graphics::GDI::get().getState() == Graphics::GDIState::Initialized)
+        {
+            const Graphics::InstanceData& _instance = Graphics::GDI::get().getInstanceData();
+            vkDestroySwapchainKHR((VkDevice)_instance.logic_device, (VkSwapchainKHR)_swap_chain, nullptr);
+
+            for (U32 i = 0; i < _image_views.size(); i++)
+                vkDestroyImageView((VkDevice)_instance.logic_device, (VkImageView)_image_views[i], nullptr);
+
+            vkDestroySurfaceKHR((VkInstance)_instance.handle, (VkSurfaceKHR)_surface, nullptr);
+        }
+        
+#   endif
+    
+        if (getState() == WindowState::Success)
+            glfwDestroyWindow((GLFWwindow*)_window);
+
+        setState(WindowState::Destroyed);
     }
 
     void Window::pollEvent() 

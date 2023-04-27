@@ -10,6 +10,7 @@ namespace cpp2d
         T left, top, width, height;
     };
 
-    typedef Rect<float>   FloatRect;
-    typedef Rect<int32_t> IntRect;
+    typedef Rect<R32> FloatRect;
+    typedef Rect<U32> UnsignedRect;
+    typedef Rect<I32> IntRect;
 }

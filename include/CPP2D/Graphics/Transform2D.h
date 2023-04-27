@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Shader.h"
+//#include "Shader.h"
 #include "../Utility.h"
 
 namespace cpp2d
@@ -15,7 +15,7 @@ namespace cpp2d
     public:
         Transform2D();
 
-        void passToShader(const Shader& shader) const;
+        //void passToShader(const Shader& shader) const;
 
         void setPosition(const Vec2f& position);
         void setRotation(const float& rotation);

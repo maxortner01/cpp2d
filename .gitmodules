@@ -1,12 +1,15 @@
 [submodule "extern/glfw"]
 	path = extern/glfw
 	url = https://github.com/glfw/glfw
-[submodule "extern/glew"]
-	path = extern/glew
-	url = https://github.com/nigels-com/glew
 [submodule "docs/doxygen-awesome-css"]
 	path = docs/doxygen-awesome-css
 	url = https://github.com/jothepro/doxygen-awesome-css
 [submodule "include/entt"]
 	path = include/entt
 	url = https://github.com/skypjack/entt
+[submodule "extern/vk-bootstrap"]
+	path = extern/vk-bootstrap
+	url = https://github.com/charles-lunarg/vk-bootstrap.git
+[submodule "extern/VulkanMemoryAllocator"]
+	path = extern/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git

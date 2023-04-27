@@ -23,6 +23,7 @@ namespace cpp2d
 
         bool isInitialized() const;
 
-        void drawInstanced(const uint32_t& indexCount, const uint32_t& instanceCount) const;
+        void drawInstanced(const U32& indexCount, const U32& instanceCount) const;
+        void setViewport(const UnsignedRect& rect) const;
     };
 }

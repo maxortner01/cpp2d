@@ -1,7 +1,6 @@
 #include <cpp2d/Graphics.h>
 
 #include <GLFW/glfw3.h>
-#include <GL/glew.h>
 
 namespace cpp2d
 {
@@ -9,12 +8,12 @@ namespace cpp2d
     {
         // Maybe store the currently bound frame buffer and re-bind
         // on calling this->unbind()
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     void DrawWindow::unbind() 
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        //glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     Vec2u DrawWindow::getSize() const
@@ -25,8 +24,8 @@ namespace cpp2d
     void DrawWindow::clear()
     {
         bind();
-        glClearColor(84.f / 255.f, 51.f / 255.f, 68.f / 255.f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        //glClearColor(84.f / 255.f, 51.f / 255.f, 68.f / 255.f, 1.0f);
+        //glClear(GL_COLOR_BUFFER_BIT);
         unbind();
     }
 

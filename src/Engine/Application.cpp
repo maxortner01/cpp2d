@@ -53,6 +53,12 @@ namespace cpp2d
         _window(size.x, size.y, title.c_str()),
         _window_shader(_types, 2)
     {
+        cppAssert(_window.getState() == WindowState::Success, "Window failed to create!");
+
+        Graphics::InitGDIData data;
+        data.window = &_window;
+        Graphics::GDI::get().init(data);
+
         _window_shader.fromString(ShaderType::Vertex,   vertex);
         _window_shader.fromString(ShaderType::Fragment, fragment);
         _window_shader.link();
@@ -131,5 +137,7 @@ namespace cpp2d
 
             Allocators::FrameProfiler::get().endFrame();
         }
+
+        Graphics::GDI::get().destroy();
     }
 }

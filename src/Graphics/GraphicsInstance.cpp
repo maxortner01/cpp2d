@@ -1,7 +1,6 @@
 #include <cpp2d/Graphics.h>
 
 #include <iostream>
-#include <GL/glew.h>
 
 namespace cpp2d
 {
@@ -38,5 +37,10 @@ namespace cpp2d
     void GraphicsInstance::drawInstanced(const uint32_t& indexCount, const uint32_t& instanceCount) const
     {
         glDrawElementsInstanced(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr, instanceCount);
+    }
+
+    void GraphicsInstance::setViewport(const UnsignedRect& rect) const
+    {
+        glViewport(rect.x, rect.y, rect.width, rect.height);
     }
 }
