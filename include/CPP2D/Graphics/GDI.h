@@ -38,10 +38,11 @@ namespace cpp2d::Graphics
 
     public:
         GDI();
+        ~GDI();
 
         const InstanceData& getInstanceData() const;
 
         void init(const InitGDIData& data);
-        void destroy();
+        //void destroy();
     };
 }

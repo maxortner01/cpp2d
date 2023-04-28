@@ -1,9 +1,5 @@
 #include <cpp2d/Graphics.h>
 
-#include <iostream>
-#include <VkBootstrap.h>
-#include <GLFW/glfw3.h>
-
 namespace cpp2d
 {
     Window::Window(const Vec2u& size, const char* title) :
@@ -11,11 +7,23 @@ namespace cpp2d
     {   }
 
     Window::Window(const U32& width, const U32& height, const char* title) :
+#   ifdef GDI_VULKAN2
+        _surface(nullptr),
+        _swap_chain(nullptr),
+        _image_format(0),
+        //_images{0, nullptr, nullptr},
+#   endif
         UnsignedSizable({width, height})
     {
         if (!glfwInit())
         {
             setState(WindowState::glfwInitFailed);
+            return;
+        }
+
+        if (!glfwVulkanSupported())
+        {
+            setState(WindowState::glfwVulkanNotSupported);
             return;
         }
         
@@ -25,13 +33,12 @@ namespace cpp2d
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#   elif GDI_VULKAN
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-#   endif
-
-#   if defined(__APPLE__) && defined(GDI_OPENGL)
+#       ifdef __APPLE__
         // Because Apple hates graphics programmers
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#       endif
+#   elif GDI_VULKAN
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 #   endif
 
         GLFWwindow* _window_instance = glfwCreateWindow(width, height, title, NULL, NULL);
@@ -61,22 +68,24 @@ namespace cpp2d
     Window::~Window()
     {
 #   ifdef GDI_VULKAN
-        if (getState() == WindowState::Success && Graphics::GDI::get().getState() == Graphics::GDIState::Initialized)
+        if (getState() == WindowState::Success && Graphics::GDI::get() && Graphics::GDI::get()->getState() == Graphics::GDIState::Initialized)
         {
-            const Graphics::InstanceData& _instance = Graphics::GDI::get().getInstanceData();
+            const Graphics::InstanceData& _instance = Graphics::GDI::get()->getInstanceData();
             vkDestroySwapchainKHR((VkDevice)_instance.logic_device, (VkSwapchainKHR)_swap_chain, nullptr);
 
-            //for (U32 i = 0; i < _image_views.size(); i++)
-                //vkDestroyImageView((VkDevice)_instance.logic_device, (VkImageView)_image_views[i], nullptr);
+            for (U32 i = 0; i < _images.size(); i++)
+                vkDestroyImageView((VkDevice)_instance.logic_device, (VkImageView)_image_views[i], nullptr);
 
             vkDestroySurfaceKHR((VkInstance)_instance.handle, (VkSurfaceKHR)_surface, nullptr);
         }
 #   endif
-    
-        if (getState() == WindowState::Success)
+
+        if (getState() == WindowState::Success && _window)
         {
             glfwDestroyWindow((GLFWwindow*)_window);
             glfwTerminate();
+
+            _window = nullptr;
 
             setState(WindowState::Destroyed);
         }

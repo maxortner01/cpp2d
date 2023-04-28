@@ -18,8 +18,18 @@ namespace Graphics
         Success,
         Destroyed,
         glfwInitFailed,
-        glfwWindowCreateFailed
+        glfwWindowCreateFailed,
+        glfwVulkanNotSupported
     };
+
+#ifdef GDI_VULKAN2
+    struct SwapChainImages
+    {
+        U32 image_count;
+        gdiImage* images;
+        gdiImageView image_views;
+    };
+#endif
 
     class Window : 
         public Utility::State<WindowState>,
@@ -32,11 +42,8 @@ namespace Graphics
         gdiSurface   _surface;
         gdiSwapChain _swap_chain;
         gdiFormat    _image_format;
-        // Not sure how I feel about vector being used here,
-        // but vkBoostrap uses it for some reason... 
-
-        // Need to reimplement without vectors... they suck
-        std::vector<gdiImage>     _images;
+        
+        std::vector<gdiImage> _images;
         std::vector<gdiImageView> _image_views;
 #   endif
 

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "./Utility.h"
+//#include "./Utility.h"
 #include "./Graphics/GDI.h"
-#include "./Graphics/Interfaces.h"
+//#include "./Graphics/Interfaces.h"
 #include "./Graphics/Window.h"
-#include "./Graphics/Timer.h"
-#include "./Graphics/DrawWindow.h"
-#include "./Graphics/Transform2D.h"
+//#include "./Graphics/Timer.h"
+//#include "./Graphics/DrawWindow.h"
+//#include "./Graphics/Transform2D.h"
 #include "./Graphics/Sizable.h"
 
 /*
