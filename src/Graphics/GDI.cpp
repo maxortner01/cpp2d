@@ -65,8 +65,8 @@ namespace cpp2d::Graphics
         // once the system is up and running
         data.window->_swap_chain = vkb_swapchain.swapchain;
         data.window->_image_format = vkb_swapchain.image_format;
-        data.window->_images = (std::vector<gdiImage>&&)vkb_swapchain.get_images().value();
-        data.window->_image_views = (std::vector<gdiImageView>&&)vkb_swapchain.get_image_views().value();
+        //data.window->_images = (std::vector<gdiImage>&&)vkb_swapchain.get_images().value();
+        //data.window->_image_views = (std::vector<gdiImageView>&&)vkb_swapchain.get_image_views().value();
 
         setState(GDIState::Initialized);
     }

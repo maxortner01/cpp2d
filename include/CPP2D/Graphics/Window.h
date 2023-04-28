@@ -34,6 +34,8 @@ namespace Graphics
         gdiFormat    _image_format;
         // Not sure how I feel about vector being used here,
         // but vkBoostrap uses it for some reason... 
+
+        // Need to reimplement without vectors... they suck
         std::vector<gdiImage>     _images;
         std::vector<gdiImageView> _image_views;
 #   endif
@@ -41,8 +43,9 @@ namespace Graphics
     public:
         friend class Graphics::GDI;
 
-        Window(const uint32_t& width, const uint32_t& height, const char* title);
-        ~Window();
+        Window(const Vec2u& size, const char* title);
+        Window(const U32& width, const U32& height, const char* title);
+        virtual ~Window();
 
         using UnsignedSizable::getSize;
 

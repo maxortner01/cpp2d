@@ -6,7 +6,11 @@
 
 namespace cpp2d
 {
-    Window::Window(const uint32_t& width, const uint32_t& height, const char* title) :
+    Window::Window(const Vec2u& size, const char* title) :
+        Window(size.x, size.y, title)
+    {   }
+
+    Window::Window(const U32& width, const U32& height, const char* title) :
         UnsignedSizable({width, height})
     {
         if (!glfwInit())
@@ -32,7 +36,7 @@ namespace cpp2d
 
         GLFWwindow* _window_instance = glfwCreateWindow(width, height, title, NULL, NULL);
 
-        int32_t _width, _height;
+        I32 _width, _height;
         glfwGetFramebufferSize(_window_instance, &_width, &_height);
 
         if (!_window_instance)
@@ -53,27 +57,29 @@ namespace cpp2d
         setState(WindowState::Success);
     }
 
+    // Seg faulting... why? Freaking vectors...
     Window::~Window()
     {
 #   ifdef GDI_VULKAN
-        std::cout << (U32)getState() << "\n";
         if (getState() == WindowState::Success && Graphics::GDI::get().getState() == Graphics::GDIState::Initialized)
         {
             const Graphics::InstanceData& _instance = Graphics::GDI::get().getInstanceData();
             vkDestroySwapchainKHR((VkDevice)_instance.logic_device, (VkSwapchainKHR)_swap_chain, nullptr);
 
-            for (U32 i = 0; i < _image_views.size(); i++)
-                vkDestroyImageView((VkDevice)_instance.logic_device, (VkImageView)_image_views[i], nullptr);
+            //for (U32 i = 0; i < _image_views.size(); i++)
+                //vkDestroyImageView((VkDevice)_instance.logic_device, (VkImageView)_image_views[i], nullptr);
 
             vkDestroySurfaceKHR((VkInstance)_instance.handle, (VkSurfaceKHR)_surface, nullptr);
         }
-        
 #   endif
     
         if (getState() == WindowState::Success)
+        {
             glfwDestroyWindow((GLFWwindow*)_window);
+            glfwTerminate();
 
-        setState(WindowState::Destroyed);
+            setState(WindowState::Destroyed);
+        }
     }
 
     void Window::pollEvent() 
