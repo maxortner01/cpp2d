@@ -1,0 +1,6 @@
+.DS_Store
+client/
+build/
+.vscode/
+lib/
+bin/
