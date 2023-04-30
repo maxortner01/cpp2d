@@ -5,16 +5,12 @@
 
 namespace cpp2d::Graphics
 {
-    typedef void* GDIHandle;
-    typedef void* GDIDebugHandle;
-    typedef void* GDIPhysicalDevice;
-    typedef void* GDILogicDevice;
-
     enum class GDIState
     {
         Initialized,
         NotInitialized,
-        InstanceCreateFailed
+        InstanceCreateFailed,
+        DeviceCreationFailed
     };
 
     class CPP2D_DLL GDI :
@@ -31,5 +27,11 @@ namespace cpp2d::Graphics
     public:
         GDI();
         ~GDI();
+
+        // Get a platform independent handle for the render api,
+        // GDI is NOT responsible for destroying this object, only
+        // creating it
+        SurfaceHandle getSurfaceHandle(const Window* window) const;
+        GDIHandle     getHandle() const;
     };
 }

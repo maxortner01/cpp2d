@@ -4,18 +4,18 @@
 
 namespace cpp2d::Graphics
 {
-    class Surface
+    class CPP2D_DLL Surface
     {
         SurfaceHandle _handle;
 
+    protected:
+        void setHandle(SurfaceHandle handle);
+
     public:
+        ~Surface();
+
         SurfaceHandle getHandle() const;
 
         virtual void display() const = 0;
     };
-
-    SurfaceHandle Surface::getHandle() const
-    {
-        return _handle;
-    }
 };

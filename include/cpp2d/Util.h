@@ -7,6 +7,10 @@
 namespace cpp2d::Graphics
 {
     typedef void* SurfaceHandle;
+    typedef void* GDIHandle;
+    typedef void* GDIDebugHandle;
+    typedef void* GDIPhysicalDevice;
+    typedef void* GDILogicDevice;
 }
 
 #ifdef _WIN32

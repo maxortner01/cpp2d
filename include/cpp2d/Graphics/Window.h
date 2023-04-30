@@ -28,5 +28,7 @@ namespace cpp2d
 
         void close();
         void pollEvents() const;
+
+        WindowHandle getHandle() const;
     };
 }

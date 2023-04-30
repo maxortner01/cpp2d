@@ -13,6 +13,10 @@
 #   define INFO(...)
 #endif
 
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
 #include "./Graphics/Window.cpp"
 #include "./Graphics/DrawWindow.cpp"
 #include "./Graphics/GDI.cpp"
+#include "./Graphics/Surface.cpp"

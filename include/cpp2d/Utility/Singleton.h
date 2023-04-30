@@ -7,6 +7,7 @@ namespace cpp2d::Utility
     template<typename T>
     class Singleton
     {
+
     public:
         static T& get();
         static void destroy();

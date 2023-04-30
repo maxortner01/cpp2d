@@ -25,6 +25,13 @@ namespace cpp2d::Graphics
         _debug  = create_debug_manager(_handle);
         _device = create_logic_device(_handle); 
 
+        if (!_device)
+        {
+            FATAL("Failed to create logic device!");
+            setState(GDIState::DeviceCreationFailed);
+            return;
+        }
+
         setState(GDIState::Initialized);
     }
 
@@ -51,6 +58,20 @@ namespace cpp2d::Graphics
         }
     }
 
+    SurfaceHandle GDI::getSurfaceHandle(const Window* window) const
+    {
+        INFO("Creating surface.");
+        VkSurfaceKHR surface;
+        if (glfwCreateWindowSurface((VkInstance)_handle, (GLFWwindow*)window->getHandle(), nullptr, &surface) != VK_SUCCESS)
+        {
+            ERROR("GLFW failed to create window surface!");
+            return nullptr;
+        }
+
+        INFO("Surface created successfully.");
+        return (SurfaceHandle)surface;
+    }
+
 #else
     // OpenGL init and cleaup functions
     void GDI::_init()
@@ -58,6 +79,9 @@ namespace cpp2d::Graphics
 
     void GDI::_delete()
     {   }
+
+    SurfaceHandle GDI::getSurfaceHandle() const
+    { return nullptr; }
 #endif
 
     GDI::GDI() :
@@ -70,5 +94,10 @@ namespace cpp2d::Graphics
     GDI::~GDI()
     {
         _delete();
+    }
+
+    GDIHandle GDI::getHandle() const
+    {
+        return _handle;
     }
 }

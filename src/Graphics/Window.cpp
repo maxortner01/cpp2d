@@ -71,4 +71,7 @@ namespace cpp2d
     {
         glfwPollEvents();
     }
+
+    WindowHandle Window::getHandle() const
+    { return _handle; }
 }

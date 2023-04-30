@@ -6,13 +6,14 @@ namespace cpp2d
         Window(width, height, title)
     {
         // Init surface with vulkan
-        Graphics::GDI::get();
+        setHandle(
+            Graphics::GDI::get().getSurfaceHandle(this)
+        );
     }
 
     DrawWindow::~DrawWindow()
     {
         // Delete surface
-        Graphics::GDI::get().destroy();
     }
 
     void DrawWindow::display() const
