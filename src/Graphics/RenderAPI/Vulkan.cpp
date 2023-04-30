@@ -72,11 +72,11 @@ GDIDebugHandle create_debug_manager(GDIHandle handle)
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo 
     {
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
         .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
-        .pfnUserCallback = debugCallback,
         .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+        .pfnUserCallback = debugCallback,
         .pUserData = nullptr,
-        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT
     };
 
     VkDebugUtilsMessengerEXT messenger;
@@ -162,6 +162,7 @@ GDILogicDevice create_logic_device(GDIHandle handle)
     U32 present_index = 0;
 
 #ifdef __APPLE__
+    // Apple devices need an extra extension
     U32 extra_index = 1;
 #else
     U32 extra_index = 0;
@@ -173,6 +174,7 @@ GDILogicDevice create_logic_device(GDIHandle handle)
     std::memcpy(device_extensions.ptr(), required_extensions, sizeof(required_extensions));
 
 #ifdef __APPLE__
+    // Load in the extra extension needed for apple devices
     device_extensions[required_count + present_index++] = "VK_KHR_portability_subset";
 #endif
 
@@ -181,27 +183,27 @@ GDILogicDevice create_logic_device(GDIHandle handle)
     float queuePriority = 1.0f;
     VkDeviceQueueCreateInfo queueCreateInfo
     {
+        .sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .queueFamilyIndex = indices.graphics_index.value(),
-        .pQueuePriorities = &queuePriority,
         .queueCount       = 1,
-        .sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO
+        .pQueuePriorities = &queuePriority,
     };
 
     VkPhysicalDeviceFeatures features{};
     VkDeviceCreateInfo createInfo
     {
-        .ppEnabledExtensionNames = device_extensions.ptr(),
-        .enabledExtensionCount  = device_extensions.size(),
+        .sType                  = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .queueCreateInfoCount   = 1,
         .pQueueCreateInfos      = &queueCreateInfo,
-        .pEnabledFeatures       = &features,
-        .sType                  = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
 #   ifdef DEBUG
+        .enabledLayerCount = sizeof(validation_layers) / sizeof(const char*),
         .ppEnabledLayerNames = validation_layers,
-        .enabledLayerCount   = sizeof(validation_layers) / sizeof(const char*)
 #   else
         .enabledLayerCount = 0
 #   endif
+        .enabledExtensionCount = device_extensions.size(),
+        .ppEnabledExtensionNames = device_extensions.ptr(),
+        .pEnabledFeatures       = &features,
     };
 
     VkDevice _device;
@@ -259,21 +261,21 @@ GDIHandle create_instance()
 
     VkApplicationInfo appInfo
     {
-        .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+        .sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pApplicationName   = "cpp2d app",
-        .engineVersion      = VK_MAKE_VERSION(1, 0, 0),
+        .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
         .pEngineName        = "app2d",
+        .engineVersion      = VK_MAKE_VERSION(1, 0, 0),
         .apiVersion         = VK_API_VERSION_1_0,
-        .sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO
     };
 
     VkInstanceCreateInfo createInfo
     {
-        .ppEnabledExtensionNames = extensions.ptr(),
-        .enabledExtensionCount   = extensions.size(),
-        .enabledLayerCount       = 0,
+        .sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
         .pApplicationInfo        = &appInfo,
-        .sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO
+        .enabledLayerCount       = 0,
+        .enabledExtensionCount   = extensions.size(),
+        .ppEnabledExtensionNames = extensions.ptr(),
     };
 
 #ifdef __APPLE__

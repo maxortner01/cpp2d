@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Util.h"
 #include "../Utility.h"
 
 namespace cpp2d::Graphics
@@ -16,7 +17,7 @@ namespace cpp2d::Graphics
         InstanceCreateFailed
     };
 
-    class GDI :
+    class CPP2D_DLL GDI :
         public Utility::Singleton<GDI>,
         public Utility::State<GDIState>
     {

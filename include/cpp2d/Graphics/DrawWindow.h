@@ -6,7 +6,7 @@ namespace cpp2d
 {
     class Window;
 
-    class DrawWindow :
+    class CPP2D_DLL DrawWindow :
         public Window,
         public Graphics::Surface
     {

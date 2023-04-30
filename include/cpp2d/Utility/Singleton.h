@@ -9,7 +9,7 @@ namespace cpp2d::Utility
     {
     public:
         static T& get();
-        static bool destroy();
+        static void destroy();
     };
 
     // Implementation
@@ -27,7 +27,7 @@ namespace cpp2d::Utility
     }
 
     template<typename T>
-    bool Singleton<T>::destroy()
+    void Singleton<T>::destroy()
     {
         T* _object = &Singleton<T>::get();
 

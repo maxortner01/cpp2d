@@ -9,6 +9,16 @@ namespace cpp2d::Graphics
     typedef void* SurfaceHandle;
 }
 
+#ifdef _WIN32
+#   ifdef CPP2D_GRAPHICS_BUILD
+#       define CPP2D_DLL __declspec(dllexport) 
+#   else 
+#       define CPP2D_DLL __declspec(dllimport)
+#   endif
+#else
+#   define CPP2D_DLL
+#endif
+
 typedef uint16_t U16;
 typedef uint32_t U32;
 typedef uint64_t U64;

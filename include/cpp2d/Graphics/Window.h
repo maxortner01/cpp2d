@@ -15,7 +15,7 @@ namespace cpp2d
         glfwWindowCreateFailed
     };
 
-    class Window :
+    class CPP2D_DLL Window :
         public Utility::State<WindowState>
     {
         WindowHandle _handle;
