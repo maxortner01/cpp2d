@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stack>
+
 #include "../Util.h"
 #include "../Utility.h"
 
@@ -13,10 +15,28 @@ namespace cpp2d::Graphics
         DeviceCreationFailed
     };
 
+    enum class GDIObject
+    {
+        Instance,
+        DebugMessenger,
+        Device,
+        Surface
+    };
+
+    struct GDIObjectInstance
+    {
+        GDIObject type;
+        void*     handle;
+        U32       argument_count;
+        void*     arguments;
+    };
+
     class CPP2D_DLL GDI :
         public Utility::Singleton<GDI>,
         public Utility::State<GDIState>
     {
+        std::stack<GDIObjectInstance> _objects;
+
         GDIHandle      _handle;
         GDIDebugHandle _debug;
         GDILogicDevice _device;
@@ -28,10 +48,7 @@ namespace cpp2d::Graphics
         GDI();
         ~GDI();
 
-        // Get a platform independent handle for the render api,
-        // GDI is NOT responsible for destroying this object, only
-        // creating it
-        SurfaceHandle getSurfaceHandle(const Window* window) const;
+        SurfaceHandle getSurfaceHandle(const Window* window);
         GDIHandle     getHandle() const;
     };
 }

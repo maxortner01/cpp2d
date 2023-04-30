@@ -22,9 +22,39 @@ namespace cpp2d::Graphics
             return;
         }
 
-        _debug  = create_debug_manager(_handle);
-        _device = create_logic_device(_handle); 
+        {
+            void* arguments = std::malloc(sizeof(void*));
+            std::memcpy(arguments, &_handle, sizeof(void*));
 
+            _objects.emplace(
+                GDIObjectInstance {
+                    .type           = GDIObject::Instance,
+                    .handle         = _handle,
+                    .argument_count = 1,
+                    .arguments      = arguments
+                }
+            );
+        }
+        
+        _debug = create_debug_manager(_handle);
+        if (!_debug)
+            ERROR("Debug messenger failed to create.");
+        else
+        {
+            void** arguments = (void**)std::malloc(sizeof(void*) * 2);
+            arguments[0] = _handle;
+            arguments[1] = _debug;
+            _objects.emplace(
+                GDIObjectInstance {
+                    .type           = GDIObject::DebugMessenger,
+                    .handle         = _debug,
+                    .argument_count = 2,
+                    .arguments      = arguments
+                }
+            );
+        }
+
+        _device = create_logic_device(_handle); 
         if (!_device)
         {
             FATAL("Failed to create logic device!");
@@ -32,33 +62,76 @@ namespace cpp2d::Graphics
             return;
         }
 
+        {
+            void** arguments = (void**)std::malloc(sizeof(void*));
+            arguments[0] = _device;
+            _objects.emplace(
+                GDIObjectInstance {
+                    .type           = GDIObject::Device,
+                    .handle         = _device,
+                    .argument_count = 1,
+                    .arguments      = arguments
+                }
+            );
+        }
+
         setState(GDIState::Initialized);
     }
 
     void GDI::_delete()
     {
-        if (_device)
+        while (!_objects.empty())
         {
-            vkDestroyDevice((VkDevice)_device, nullptr);
-            _device = nullptr;
-        }
+            GDIObjectInstance& object = _objects.top();
 
-        if (_debug)
-        {
-            INFO("Destroying debug messenger.");
-            DestroyDebugUtilsMessengerEXT((VkInstance)_handle, (VkDebugUtilsMessengerEXT)_debug, nullptr);
-            _debug = nullptr;
-        }
+            char* it = (char*)object.arguments;
+            switch (object.type)
+            {
+            case GDIObject::Instance:
+                {
+                    INFO("Destroying vulkan instance.");
+                    VkInstance instance = *(VkInstance*)it;
+                    vkDestroyInstance(instance, nullptr);
+                    break;
+                }
 
-        if (_handle)
-        {
-            INFO("Destroying vulkan instance.");
-            vkDestroyInstance((VkInstance)_handle, nullptr);
-            _handle = nullptr;
+            case GDIObject::DebugMessenger:
+                {
+                    VkInstance instance = *(VkInstance*)it;
+                    it += sizeof(VkInstance);
+                    VkDebugUtilsMessengerEXT messenger = *(VkDebugUtilsMessengerEXT*)it;
+
+                    INFO("Destroying debug messenger.");
+                    DestroyDebugUtilsMessengerEXT(instance, messenger, nullptr);
+                    break;
+                }
+
+            case GDIObject::Device:
+                {
+                    INFO("Destroying logic device.");
+                    VkDevice device = *(VkDevice*)it;
+                    vkDestroyDevice(device, nullptr);
+                    break;
+                }
+
+            case GDIObject::Surface:
+                {
+                    INFO("Destroying surface.");
+                    VkInstance instance = *(VkInstance*)it;
+                    it += sizeof(VkInstance);
+                    VkSurfaceKHR surface = *(VkSurfaceKHR*)it;
+
+                    vkDestroySurfaceKHR(instance, surface, nullptr);
+                    break;
+                }
+            }
+
+            std::free(object.arguments);
+            _objects.pop();
         }
     }
 
-    SurfaceHandle GDI::getSurfaceHandle(const Window* window) const
+    SurfaceHandle GDI::getSurfaceHandle(const Window* window)
     {
         INFO("Creating surface.");
         VkSurfaceKHR surface;
@@ -67,6 +140,18 @@ namespace cpp2d::Graphics
             ERROR("GLFW failed to create window surface!");
             return nullptr;
         }
+
+        void** arguments = (void**)std::malloc(sizeof(VkInstance) + sizeof(VkSurfaceKHR));
+        arguments[0] = _handle;
+        arguments[1] = surface;
+        _objects.emplace(
+            GDIObjectInstance {
+                .type           = GDIObject::Surface,
+                .handle         = surface,
+                .argument_count = 2,
+                .arguments      = arguments
+            }
+        );
 
         INFO("Surface created successfully.");
         return (SurfaceHandle)surface;

@@ -14,6 +14,7 @@ namespace cpp2d
     DrawWindow::~DrawWindow()
     {
         // Delete surface
+        Graphics::GDI::get().destroy();
     }
 
     void DrawWindow::display() const
