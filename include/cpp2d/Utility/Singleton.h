@@ -12,6 +12,8 @@ namespace cpp2d::Utility
         static bool destroy();
     };
 
+    // Implementation
+
     template<typename T>
     T& Singleton<T>::get()
     {
@@ -21,7 +23,7 @@ namespace cpp2d::Utility
 
         // the singleton shouldn't be accessed after it has been destroyed
         assert(_object);
-        return _object;
+        return *_object;
     }
 
     template<typename T>

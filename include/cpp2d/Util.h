@@ -1,7 +1,13 @@
 #pragma once
 
+#include <cstdlib>
 #include <cassert>
 #include <cstdint>
+
+namespace cpp2d::Graphics
+{
+    typedef void* SurfaceHandle;
+}
 
 typedef uint16_t U16;
 typedef uint32_t U32;
