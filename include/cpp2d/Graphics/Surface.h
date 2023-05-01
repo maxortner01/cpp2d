@@ -1,10 +1,12 @@
 #pragma once
 
 #include "../Util.h"
+#include "Sizable.h"
 
 namespace cpp2d::Graphics
 {
-    class CPP2D_DLL Surface
+    class CPP2D_DLL Surface :
+        public Sizable
     {
         SurfaceHandle   _handle;
         SwapChainHandle _swapchain;
@@ -14,6 +16,7 @@ namespace cpp2d::Graphics
         void setSwapChain(SwapChainHandle handle);
 
     public:
+        Surface(const Vec2u& extent);
         ~Surface();
 
         SurfaceHandle getHandle() const;

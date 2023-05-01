@@ -4,6 +4,10 @@
 
 namespace cpp2d::Graphics
 {
+    Surface::Surface(const Vec2u& extent) :
+        Sizable(extent)
+    {   }
+
 #ifdef GDI_VULKAN
     Surface::~Surface()
     {

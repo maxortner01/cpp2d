@@ -20,7 +20,8 @@ namespace cpp2d::Graphics
         Instance,
         DebugMessenger,
         Device,
-        Surface
+        Surface,
+        Swapchain
     };
 
     struct GDIObjectInstance

@@ -135,6 +135,41 @@ struct SwapChainSupport
     U32 present_mode_count;
 };  
 
+VkSurfaceFormatKHR choose_swapchain_format(VkSurfaceFormatKHR* formats, U32 format_count)
+{
+    for (U32 i = 0; i < format_count; i++)
+        if (formats[i].format == VK_FORMAT_B8G8R8A8_SRGB && formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+            return formats[i];
+
+    return formats[0];
+}
+
+VkPresentModeKHR choose_swapchain_present_mode(VkPresentModeKHR* present_modes, U32 present_mode_count)
+{
+    for (U32 i = 0; i < present_mode_count; i++)
+        if (present_modes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+            return VK_PRESENT_MODE_MAILBOX_KHR;
+    
+    return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+VkExtent2D choose_swapchain_extent(const VkSurfaceCapabilitiesKHR& capabilities, const Surface* surface)
+{
+    if (capabilities.currentExtent.width != std::numeric_limits<U32>::max())
+        return capabilities.currentExtent;
+
+    VkExtent2D extent;
+
+    extent.width  = surface->getExtent().x;
+    extent.height = surface->getExtent().y;
+    if (extent.width > capabilities.maxImageExtent.width)
+        extent.width = capabilities.maxImageExtent.width;
+    if (extent.height > capabilities.maxImageExtent.height)
+        extent.height = capabilities.maxImageExtent.height; 
+
+    return extent;
+}
+
 // Determine whether or not a device is suitable
 bool is_suitable_device(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
