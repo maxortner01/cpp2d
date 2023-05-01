@@ -6,10 +6,12 @@ namespace cpp2d::Graphics
 {
     class CPP2D_DLL Surface
     {
-        SurfaceHandle _handle;
+        SurfaceHandle   _handle;
+        SwapChainHandle _swapchain;
 
     protected:
         void setHandle(SurfaceHandle handle);
+        void setSwapChain(SwapChainHandle handle);
 
     public:
         ~Surface();

@@ -4,15 +4,6 @@
 #include <cassert>
 #include <cstdint>
 
-namespace cpp2d::Graphics
-{
-    typedef void* SurfaceHandle;
-    typedef void* GDIHandle;
-    typedef void* GDIDebugHandle;
-    typedef void* GDIPhysicalDevice;
-    typedef void* GDILogicDevice;
-}
-
 #ifdef _WIN32
 #   ifdef CPP2D_GRAPHICS_BUILD
 #       define CPP2D_DLL __declspec(dllexport) 
@@ -44,3 +35,20 @@ typedef double R64;
 
 typedef const R32 CR32;
 typedef const R64 CR64;
+
+namespace cpp2d::Graphics
+{
+    typedef void* SurfaceHandle;
+    typedef void* SwapChainHandle;
+
+    typedef void* GDIHandle;
+    typedef void* GDIDebugHandle;
+    typedef void* GDIPhysicalDevice;
+
+    typedef void* GDIDeviceHandle;
+    struct GDILogicDevice
+    {
+        GDIDeviceHandle handle;
+        I32 physical_device_index;
+    };
+}

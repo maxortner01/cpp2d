@@ -9,6 +9,10 @@ namespace cpp2d
         setHandle(
             Graphics::GDI::get().getSurfaceHandle(this)
         );
+
+        setSwapChain(
+            Graphics::GDI::get().createSwapChain(this)
+        );
     }
 
     DrawWindow::~DrawWindow()

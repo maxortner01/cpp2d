@@ -37,9 +37,16 @@ namespace cpp2d::Graphics
     {
         std::stack<GDIObjectInstance> _objects;
 
+        struct 
+        {
+            U32                device_count;
+            GDIPhysicalDevice* handles;
+        } _physical_devices;
+
         GDIHandle      _handle;
         GDIDebugHandle _debug;
         GDILogicDevice _device;
+        I32 _suitable_device_index;
 
         void _init();
         void _delete();
@@ -48,7 +55,8 @@ namespace cpp2d::Graphics
         GDI();
         ~GDI();
 
-        SurfaceHandle getSurfaceHandle(const Window* window);
-        GDIHandle     getHandle() const;
+        SwapChainHandle createSwapChain(const Surface* window);
+        SurfaceHandle   getSurfaceHandle(const Window* window);
+        GDIHandle       getHandle() const;
     };
 }

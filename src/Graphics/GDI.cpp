@@ -54,26 +54,9 @@ namespace cpp2d::Graphics
             );
         }
 
-        _device = create_logic_device(_handle); 
-        if (!_device)
-        {
-            FATAL("Failed to create logic device!");
-            setState(GDIState::DeviceCreationFailed);
-            return;
-        }
-
-        {
-            void** arguments = (void**)std::malloc(sizeof(void*));
-            arguments[0] = _device;
-            _objects.emplace(
-                GDIObjectInstance {
-                    .type           = GDIObject::Device,
-                    .handle         = _device,
-                    .argument_count = 1,
-                    .arguments      = arguments
-                }
-            );
-        }
+        vkEnumeratePhysicalDevices((VkInstance)_handle, &_physical_devices.device_count, nullptr);
+        _physical_devices.handles = (GDIPhysicalDevice*)std::malloc(sizeof(GDIPhysicalDevice) * _physical_devices.device_count);
+        vkEnumeratePhysicalDevices((VkInstance)_handle, &_physical_devices.device_count, (VkPhysicalDevice*)_physical_devices.handles);
 
         setState(GDIState::Initialized);
     }
@@ -131,6 +114,30 @@ namespace cpp2d::Graphics
         }
     }
 
+    SwapChainHandle GDI::createSwapChain(const Surface* surface)
+    {
+        VkPhysicalDevice _suitable_device = (VkPhysicalDevice)_physical_devices.handles[_suitable_device_index];
+
+        VkSurfaceCapabilitiesKHR capabilities;
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_suitable_device, (VkSurfaceKHR)surface->getHandle(), &capabilities);
+
+
+        U32 format_count, present_mode_count;
+        vkGetPhysicalDeviceSurfacePresentModesKHR(_suitable_device, (VkSurfaceKHR)surface->getHandle(), &present_mode_count, nullptr);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(_suitable_device, (VkSurfaceKHR)surface->getHandle(), &format_count, nullptr);
+
+        ScopedData<VkSurfaceFormatKHR> formats(format_count);
+        ScopedData<VkPresentModeKHR> present_modes(present_mode_count);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(_suitable_device, (VkSurfaceKHR)surface->getHandle(), &present_mode_count, present_modes.ptr());
+        vkGetPhysicalDeviceSurfaceFormatsKHR(_suitable_device, (VkSurfaceKHR)surface->getHandle(), &format_count, formats.ptr());
+
+        VkSurfaceFormatKHR surface_format;
+        VkPresentModeKHR   present_mode;
+        VkExtent2D         extent;
+
+        return nullptr;
+    }
+
     SurfaceHandle GDI::getSurfaceHandle(const Window* window)
     {
         INFO("Creating surface.");
@@ -154,6 +161,39 @@ namespace cpp2d::Graphics
         );
 
         INFO("Surface created successfully.");
+
+        _suitable_device_index = -1;
+        for (U32 i = 0; i < _physical_devices.device_count; i++)
+            if (is_suitable_device((VkPhysicalDevice)_physical_devices.handles[i], surface))
+            {
+                _suitable_device_index = i;
+                break;
+            }
+
+        if (_suitable_device_index == -1)
+            WARN("No suitable physical device found for surface.");
+
+        _device = create_logic_device(_handle, surface, (VkPhysicalDevice*)_physical_devices.handles, _suitable_device_index); 
+        if (!_device.handle)
+        {
+            FATAL("Failed to create logic device!");
+            setState(GDIState::DeviceCreationFailed);
+            return nullptr;
+        }
+
+        {
+            void** arguments = (void**)std::malloc(sizeof(void*));
+            arguments[0] = _device.handle;
+            _objects.emplace(
+                GDIObjectInstance {
+                    .type           = GDIObject::Device,
+                    .handle         = _device.handle,
+                    .argument_count = 1,
+                    .arguments      = arguments
+                }
+            );
+        }
+
         return (SurfaceHandle)surface;
     }
 
@@ -179,6 +219,12 @@ namespace cpp2d::Graphics
     GDI::~GDI()
     {
         _delete();
+
+        if (_physical_devices.handles)
+        {
+            std::free(_physical_devices.handles);
+            _physical_devices.handles = nullptr;
+        }
     }
 
     GDIHandle GDI::getHandle() const

@@ -98,10 +98,11 @@ GDIDebugHandle create_debug_manager(GDIHandle handle)
 struct QueueFamilyIndices
 {
     std::optional<U32> graphics_index;
+    std::optional<U32> present_index;
 };
 
 // Finds the indices of the queue families given a physical device
-QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device)
+QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
     QueueFamilyIndices indices;
 
@@ -112,51 +113,71 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device)
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, props.ptr());
 
     for (U32 i = 0; i < props.size(); i++)
+    {
         if (props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
             indices.graphics_index = i; 
+        
+        VkBool32 present_support;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present_support);
+        if (present_support) indices.present_index = i;
+    }
 
     return indices;
-}
-
-// Determine whether or not a device is suitable
-bool is_suitable_device(VkPhysicalDevice device)
-{
-    QueueFamilyIndices indices = findQueueFamilies(device);
-
-    return indices.graphics_index.has_value();
 }
 
 const char* required_extensions[] = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
+struct SwapChainSupport
+{
+    U32 format_count;
+    U32 present_mode_count;
+};  
+
+// Determine whether or not a device is suitable
+bool is_suitable_device(VkPhysicalDevice device, VkSurfaceKHR surface)
+{
+    QueueFamilyIndices indices = findQueueFamilies(device, surface);
+
+    // Check whether or not the physical device supports all the required extensions
+    U32 extension_count;
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extension_count, nullptr);
+
+    ScopedData<VkExtensionProperties> props(extension_count);
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extension_count, props.ptr());
+
+    for (U32 i = 0; i < sizeof(required_extensions) / sizeof(void*); i++)
+    {
+        bool found = false;
+        
+        for (U32 j = 0; j < props.size(); j++)
+            if (strcmp(props[j].extensionName, required_extensions[i]) == 0)
+            {
+                found = true;
+                break;
+            }
+
+        if (!found) 
+        {
+            ERROR("Extension '%s' not supported.", required_extensions[i]);
+            return false;
+        }
+    }
+    
+    // make sure there are format and present modes
+    SwapChainSupport support;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &support.present_mode_count, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &support.format_count, nullptr);
+
+    return (support.format_count > 0 && support.present_mode_count > 0) && (indices.graphics_index.has_value() && indices.present_index.has_value());
+}
+
 // Find and pick out the physical device that satisfies all our requirements
-GDILogicDevice create_logic_device(GDIHandle handle)
+GDILogicDevice create_logic_device(GDIHandle handle, VkSurfaceKHR surface, VkPhysicalDevice* devices, I32 suitableDeviceIndex)
 {
     INFO("Creating logic device.");
     VkInstance instance = (VkInstance)handle;
-
-    U32 device_count;
-    vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
-
-    if (!device_count) return nullptr;
-
-    ScopedData<VkPhysicalDevice> devices(device_count);
-    vkEnumeratePhysicalDevices(instance, &device_count, devices.ptr());
-
-    VkPhysicalDevice device = VK_NULL_HANDLE;
-    for (U32 i = 0; i < devices.size(); i++)
-        if (is_suitable_device(devices[i]))
-        {
-            device = devices[i];
-            break;
-        }
-
-    if (device == VK_NULL_HANDLE) 
-    {
-        FATAL("No suitable physical devices found.");
-        return nullptr;
-    }
 
     // Now we grab the extensions needed for the device
     U32 present_index = 0;
@@ -168,6 +189,17 @@ GDILogicDevice create_logic_device(GDIHandle handle)
     U32 extra_index = 0;
 #endif
 
+    if (suitableDeviceIndex < 0)
+    {
+        FATAL("No suitable devices found for logic device creation.");
+        return GDILogicDevice{
+            .handle = nullptr,
+            .physical_device_index = -1
+        };
+    }
+
+    VkPhysicalDevice suitable_device = devices[suitableDeviceIndex];
+
     CU32 required_count = sizeof(required_extensions) / sizeof(const char*);
     CU32 total_extensions = required_count + extra_index;
     ScopedData<const char*> device_extensions(total_extensions);
@@ -178,7 +210,7 @@ GDILogicDevice create_logic_device(GDIHandle handle)
     device_extensions[required_count + present_index++] = "VK_KHR_portability_subset";
 #endif
 
-    QueueFamilyIndices indices = findQueueFamilies(device);
+    QueueFamilyIndices indices = findQueueFamilies(suitable_device, surface);
 
     float queuePriority = 1.0f;
     VkDeviceQueueCreateInfo queueCreateInfo
@@ -207,16 +239,22 @@ GDILogicDevice create_logic_device(GDIHandle handle)
     };
 
     VkDevice _device;
-    VkResult result = vkCreateDevice(device, &createInfo, nullptr, &_device);
+    VkResult result = vkCreateDevice(suitable_device, &createInfo, nullptr, &_device);
     if (result != VK_SUCCESS)
     {
         FATAL("Failed to create device!");
-        return nullptr;
+        return GDILogicDevice{
+            .handle = nullptr,
+            .physical_device_index = -1
+        };
     }
 
 
     INFO("Successfully created logic device.");
-    return (GDILogicDevice)_device;
+    return GDILogicDevice {
+        .handle = (GDIDeviceHandle)_device,
+        .physical_device_index = suitableDeviceIndex
+    };
 }
 
 // Creates a vulkan instance
