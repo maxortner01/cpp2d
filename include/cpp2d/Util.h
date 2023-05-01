@@ -40,6 +40,7 @@ namespace cpp2d::Graphics
 {
     typedef void* FormatHandle;
     typedef void* ImageHandle;
+    typedef void* ImageViewHandle;
     typedef void* SurfaceHandle;
     typedef void* SwapChainHandle;
 
@@ -48,7 +49,8 @@ namespace cpp2d::Graphics
     {
         SwapChainHandle handle;
         U32 image_count;
-        ImageHandle* images;
+        ImageHandle*     images;
+        ImageViewHandle* image_views;
         FormatHandle format;
     };
 

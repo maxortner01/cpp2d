@@ -81,7 +81,7 @@ namespace cpp2d::Graphics
 
             case GDIObject::DebugMessenger:
                 {
-                    VkInstance               instance  = it.get<VkInstance>();
+                    VkInstance                instance = it.get<VkInstance>();
                     VkDebugUtilsMessengerEXT messenger = it.get<VkDebugUtilsMessengerEXT>();
 
                     INFO("Destroying debug messenger.");
@@ -110,7 +110,7 @@ namespace cpp2d::Graphics
             case GDIObject::Swapchain:
                 {
                     INFO("Destroying swapchain.");
-                    VkDevice device          = it.get<VkDevice>();
+                    VkDevice          device = it.get<VkDevice>();
                     VkSwapchainKHR swapchain = it.get<VkSwapchainKHR>();
 
                     vkDestroySwapchainKHR(device, swapchain, nullptr);
@@ -192,7 +192,8 @@ namespace cpp2d::Graphics
                 .format = 0,
                 .handle = nullptr,
                 .image_count = 0,
-                .images = nullptr
+                .images = nullptr,
+                .image_views = nullptr
             };
         }
 
@@ -204,7 +205,6 @@ namespace cpp2d::Graphics
             GDIObjectInstance {
                 .type           = GDIObject::Swapchain,
                 .handle         = swapchain,
-                .argument_count = 2,
                 .arguments      = arguments
             }
         );
@@ -214,6 +214,13 @@ namespace cpp2d::Graphics
         vkGetSwapchainImagesKHR((VkDevice)_device.handle, swapchain, &info.image_count, nullptr);
         info.images = (ImageHandle*)std::malloc(sizeof(VkImage) * info.image_count);
         vkGetSwapchainImagesKHR((VkDevice)_device.handle, swapchain, &info.image_count, (VkImage*)info.images);
+
+        VkImageView image_views = (VkImageView)std::malloc(sizeof(VkImageView) * info.image_count);
+        for (U32 i = 0; i < info.image_count; i++)
+        {
+            // Call vkcreateimage view
+            // Pass the image to the stack
+        }
 
         INFO("Swapchain created successfully.");
         return info;

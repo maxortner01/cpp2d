@@ -7,16 +7,17 @@ namespace cpp2d::Graphics
         _swapchain_images{
             .count = 0,
             .format = 0,
-            .handles = nullptr
+            .handles = nullptr,
+            .image_views = nullptr
         }
     {   }
 
     Surface::~Surface()
     {   
-        if (_swapchain_images.handles)
+        if (_swapchain_images.images)
         {
-            std::free(_swapchain_images.handles);
-            _swapchain_images.handles = nullptr;
+            std::free(_swapchain_images.images);
+            _swapchain_images.images = nullptr;
         }
     }
 
@@ -29,13 +30,15 @@ namespace cpp2d::Graphics
     {
         _swapchain = info.handle;
 #   ifdef GDI_VULKAN
-        if (_swapchain_images.handles) std::free(_swapchain_images.handles);
+        if (_swapchain_images.images)      std::free(_swapchain_images.images);
+        if (_swapchain_images.image_views) std::free(_swapchain_images.image_views);
         
         // info.images has already been malloced (GDI::createSwapChain), so no need to allocate more memory
         // we just need to be sure to free this on destruction
-        _swapchain_images.handles = info.images;
+        _swapchain_images.images = info.images;
         _swapchain_images.format = info.format;
         _swapchain_images.count  = info.image_count;
+        _swapchain_images.image_views = info.image_views;
 #   endif
     }
 
