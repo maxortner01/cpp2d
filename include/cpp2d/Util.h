@@ -38,8 +38,19 @@ typedef const R64 CR64;
 
 namespace cpp2d::Graphics
 {
+    typedef void* FormatHandle;
+    typedef void* ImageHandle;
     typedef void* SurfaceHandle;
     typedef void* SwapChainHandle;
+
+    // Dangerous since images must be freed...
+    struct SwapChainInfo
+    {
+        SwapChainHandle handle;
+        U32 image_count;
+        ImageHandle* images;
+        FormatHandle format;
+    };
 
     typedef void* GDIHandle;
     typedef void* GDIDebugHandle;

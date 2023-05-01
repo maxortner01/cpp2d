@@ -123,7 +123,7 @@ namespace cpp2d::Graphics
         }
     }
 
-    SwapChainHandle GDI::createSwapChain(const Surface* surface)
+    SwapChainInfo GDI::createSwapChain(const Surface* surface)
     {
         INFO("Creating swapchain for surface.");
         VkPhysicalDevice _suitable_device = (VkPhysicalDevice)_physical_devices.handles[_suitable_device_index];
@@ -188,7 +188,12 @@ namespace cpp2d::Graphics
         if (result != VK_SUCCESS)
         {
             ERROR("Error creating swapchain: %i", result);
-            return nullptr;
+            return SwapChainInfo {
+                .format = 0,
+                .handle = nullptr,
+                .image_count = 0,
+                .images = nullptr
+            };
         }
 
         void** arguments = (void**)std::malloc(sizeof(void*) * 2);
@@ -204,8 +209,14 @@ namespace cpp2d::Graphics
             }
         );
 
+        SwapChainInfo info;
+        info.handle = (SwapChainHandle)swapchain;
+        vkGetSwapchainImagesKHR((VkDevice)_device.handle, swapchain, &info.image_count, nullptr);
+        info.images = (ImageHandle*)std::malloc(sizeof(VkImage) * info.image_count);
+        vkGetSwapchainImagesKHR((VkDevice)_device.handle, swapchain, &info.image_count, (VkImage*)info.images);
+
         INFO("Swapchain created successfully.");
-        return (SwapChainHandle)swapchain;
+        return info;
     }
 
     SurfaceHandle GDI::getSurfaceHandle(const Window* window)

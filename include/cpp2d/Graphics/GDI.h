@@ -56,8 +56,8 @@ namespace cpp2d::Graphics
         GDI();
         ~GDI();
 
-        SwapChainHandle createSwapChain(const Surface* window);
-        SurfaceHandle   getSurfaceHandle(const Window* window);
-        GDIHandle       getHandle() const;
+        SwapChainInfo createSwapChain(const Surface* window);
+        SurfaceHandle getSurfaceHandle(const Window* window);
+        GDIHandle     getHandle() const;
     };
 }
