@@ -22,14 +22,14 @@ namespace cpp2d::Graphics
         _handle = create_instance();
         if (!_handle)
         {
-            FATAL("Vulkan instance failed to create.");
+            cpp2dFATAL("Vulkan instance failed to create.");
             setState(GDIState::InstanceCreateFailed);
             return;
         }
 
         {
             Utility::ArgumentList arguments;
-            arguments.set<VkInstance>((VkInstance)_handle);
+            arguments.set((VkInstance)_handle);
 
             _objects.push(
                 GDIObjectInstance {
@@ -42,11 +42,11 @@ namespace cpp2d::Graphics
         
         _debug = create_debug_manager(_handle);
         if (!_debug)
-            ERROR("Debug messenger failed to create.");
+            cpp2dERROR("Debug messenger failed to create.");
         else
         {
             Utility::ArgumentList arguments;
-            arguments.set<VkInstance, VkDebugUtilsMessengerEXT>(
+            arguments.set(
                 (VkInstance)_handle,
                 (VkDebugUtilsMessengerEXT)_debug
             );
@@ -77,7 +77,7 @@ namespace cpp2d::Graphics
             {
             case GDIObject::Instance:
                 {
-                    INFO("Destroying vulkan instance.");
+                    cpp2dINFO("Destroying vulkan instance.");
                     VkInstance instance = object.arguments.get<VkInstance>();
                     vkDestroyInstance(instance, nullptr);
                     break;
@@ -88,14 +88,14 @@ namespace cpp2d::Graphics
                     VkInstance                instance = object.arguments.get<VkInstance>();
                     VkDebugUtilsMessengerEXT messenger = object.arguments.get<VkDebugUtilsMessengerEXT>();
 
-                    INFO("Destroying debug messenger.");
+                    cpp2dINFO("Destroying debug messenger.");
                     DestroyDebugUtilsMessengerEXT(instance, messenger, nullptr);
                     break;
                 }
 
             case GDIObject::Device:
                 {
-                    INFO("Destroying logic device.");
+                    cpp2dINFO("Destroying logic device.");
                     VkDevice device = object.arguments.get<VkDevice>();
                     vkDestroyDevice(device, nullptr);
                     break;
@@ -103,7 +103,7 @@ namespace cpp2d::Graphics
 
             case GDIObject::Surface:
                 {
-                    INFO("Destroying surface.");
+                    cpp2dINFO("Destroying surface.");
                     VkInstance instance  = object.arguments.get<VkInstance>();
                     VkSurfaceKHR surface = object.arguments.get<VkSurfaceKHR>();
 
@@ -113,13 +113,24 @@ namespace cpp2d::Graphics
 
             case GDIObject::Swapchain:
                 {
-                    INFO("Destroying swapchain.");
+                    cpp2dINFO("Destroying swapchain.");
                     VkDevice          device = object.arguments.get<VkDevice>();
                     VkSwapchainKHR swapchain = object.arguments.get<VkSwapchainKHR>();
 
                     vkDestroySwapchainKHR(device, swapchain, nullptr);
                     break;
                 }
+
+            case GDIObject::ImageView:
+                {
+                    cpp2dINFO("Destroying image view.");
+                    VkDevice device        = object.arguments.get<VkDevice>();
+                    VkImageView image_view = object.arguments.get<VkImageView>();
+
+                    vkDestroyImageView(device, image_view, nullptr);
+                    break;
+                }
+
             }
 
             object.arguments.free();
@@ -129,7 +140,7 @@ namespace cpp2d::Graphics
 
     SwapChainInfo GDI::createSwapChain(const Surface* surface)
     {
-        INFO("Creating swapchain for surface.");
+        cpp2dINFO("Creating swapchain for surface.");
         VkPhysicalDevice _suitable_device = (VkPhysicalDevice)_physical_devices.handles[_suitable_device_index];
 
         VkSurfaceCapabilitiesKHR capabilities;
@@ -191,18 +202,17 @@ namespace cpp2d::Graphics
         VkResult result = vkCreateSwapchainKHR((VkDevice)_device.handle, &create_info, nullptr, &swapchain);
         if (result != VK_SUCCESS)
         {
-            ERROR("Error creating swapchain: %i", result);
+            cpp2dERROR("Error creating swapchain: %i", result);
             return SwapChainInfo {
                 .handle = nullptr,
                 .image_count = 0,
                 .images = nullptr,
-                .image_views = nullptr,
                 .format = 0,
             };
         }
 
         Utility::ArgumentList arguments;
-        arguments.set<VkDevice, VkSwapchainKHR>(
+        arguments.set(
             (VkDevice)_device.handle,
             (VkSwapchainKHR)swapchain
         );
@@ -218,32 +228,77 @@ namespace cpp2d::Graphics
         SwapChainInfo info;
         info.handle = (SwapChainHandle)swapchain;
         vkGetSwapchainImagesKHR((VkDevice)_device.handle, swapchain, &info.image_count, nullptr);
-        info.images = (ImageHandle*)std::malloc(sizeof(VkImage) * info.image_count);
-        vkGetSwapchainImagesKHR((VkDevice)_device.handle, swapchain, &info.image_count, (VkImage*)info.images);
 
-        VkImageView image_views = (VkImageView)std::malloc(sizeof(VkImageView) * info.image_count);
+        ScopedData<VkImage> images(info.image_count);
+        ScopedData<VkImageView> image_views(info.image_count);
+        vkGetSwapchainImagesKHR((VkDevice)_device.handle, swapchain, &info.image_count, images.ptr());
+
+        info.images = (GDIImage*)std::malloc(sizeof(GDIImage) * info.image_count);
         for (U32 i = 0; i < info.image_count; i++)
         {
             // Call vkcreateimage view
-            // Pass the image to the stack
+            VkImageViewCreateInfo create_info
+            {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                .image = images[i],
+                .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                .format = surface_format.format,
+                .components = { 
+                    VK_COMPONENT_SWIZZLE_IDENTITY,
+                    VK_COMPONENT_SWIZZLE_IDENTITY,
+                    VK_COMPONENT_SWIZZLE_IDENTITY,
+                    VK_COMPONENT_SWIZZLE_IDENTITY
+                },
+                .subresourceRange = {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1
+                }
+            };
+
+            VkResult result = vkCreateImageView((VkDevice)_device.handle, &create_info, nullptr, &image_views[i]);
+            if (result != VK_SUCCESS)
+            {
+                cpp2dERROR("Image view (%u) creation failed.", i);
+                continue;
+            }
+
+            // Pass the image view to the stack
+            Utility::ArgumentList arguments;
+            arguments.set(
+                (VkDevice)_device.handle,
+                image_views[i]
+            );
+
+            _objects.push(GDIObjectInstance{
+                .type = GDIObject::ImageView,
+                .handle = image_views[i],
+                .arguments = arguments
+            });
+
+            info.images[i].image = images[i];
+            info.images[i].image_view = image_views[i];
         }
 
-        INFO("Swapchain created successfully.");
+
+        cpp2dINFO("Swapchain created successfully.");
         return info;
     }
 
     SurfaceHandle GDI::getSurfaceHandle(const Window* window)
     {
-        INFO("Creating surface.");
+        cpp2dINFO("Creating surface.");
         VkSurfaceKHR surface;
         if (glfwCreateWindowSurface((VkInstance)_handle, (GLFWwindow*)window->getHandle(), nullptr, &surface) != VK_SUCCESS)
         {
-            ERROR("GLFW failed to create window surface!");
+            cpp2dERROR("GLFW failed to create window surface!");
             return nullptr;
         }
 
         Utility::ArgumentList arguments;
-        arguments.set<VkInstance, VkSurfaceKHR>(
+        arguments.set(
             (VkInstance)_handle,
             (VkSurfaceKHR)surface
         );
@@ -256,7 +311,7 @@ namespace cpp2d::Graphics
             }
         );
 
-        INFO("Surface created successfully.");
+        cpp2dINFO("Surface created successfully.");
 
         _suitable_device_index = -1;
         for (U32 i = 0; i < _physical_devices.device_count; i++)
@@ -267,19 +322,19 @@ namespace cpp2d::Graphics
             }
 
         if (_suitable_device_index == -1)
-            WARN("No suitable physical device found for surface.");
+            cpp2dWARN("No suitable physical device found for surface.");
 
         _device = create_logic_device(_handle, surface, (VkPhysicalDevice*)_physical_devices.handles, _suitable_device_index); 
         if (!_device.handle)
         {
-            FATAL("Failed to create logic device!");
+            cpp2dFATAL("Failed to create logic device!");
             setState(GDIState::DeviceCreationFailed);
             return nullptr;
         }
 
         {
             Utility::ArgumentList arguments;
-            arguments.set<VkDevice>((VkDevice)_device.handle);
+            arguments.set((VkDevice)_device.handle);
 
             _objects.push(
                 GDIObjectInstance {

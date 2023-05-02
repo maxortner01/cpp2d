@@ -8,11 +8,11 @@ namespace cpp2d
         _handle(nullptr),
         State<WindowState>(WindowState::NotInitialized)
     {
-        INFO("Creating window and initalizing glfw.");
+        cpp2dINFO("Creating window and initalizing glfw.");
 
         if (!glfwInit())
         {
-            FATAL("GLFW failed to initialize.");
+            cpp2dFATAL("GLFW failed to initialize.");
             setState(WindowState::glfwInitFailed);
             return;
         }
@@ -26,7 +26,7 @@ namespace cpp2d
 
         if (!_handle)
         {
-            FATAL("Window failed to create.");
+            cpp2dFATAL("Window failed to create.");
             setState(WindowState::glfwWindowCreateFailed);
             return;
         }
@@ -36,7 +36,7 @@ namespace cpp2d
 
         //glViewport(0, 0, _width, _height);
 
-        INFO("Window created successfully.");
+        cpp2dINFO("Window created successfully.");
         setState(WindowState::Success);
     }
 
@@ -44,7 +44,7 @@ namespace cpp2d
     {
         if (_handle)
         {
-            INFO("Destroying window and terminating glfw.");
+            cpp2dINFO("Destroying window and terminating glfw.");
             glfwDestroyWindow((GLFWwindow*)_handle);
             
             // while we're doing single window applications

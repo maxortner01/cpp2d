@@ -11,13 +11,13 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     {
     default: break;
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-        INFO("%s", pCallbackData->pMessage); break;
+        cpp2dINFO("%s", pCallbackData->pMessage); break;
     
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-        WARN("%s", pCallbackData->pMessage); break;
+        cpp2dWARN("%s", pCallbackData->pMessage); break;
     
     case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-        ERROR("%s", pCallbackData->pMessage); break;
+        cpp2dERROR("%s", pCallbackData->pMessage); break;
     }
 
     return VK_FALSE;
@@ -68,7 +68,7 @@ bool validation_layers_supported()
 
 GDIDebugHandle create_debug_manager(GDIHandle handle)
 {
-    INFO("Creating debug messenger.");
+    cpp2dINFO("Creating debug messenger.");
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo 
     {
@@ -83,11 +83,11 @@ GDIDebugHandle create_debug_manager(GDIHandle handle)
     VkResult result = CreateDebugUtilsMessengerEXT((VkInstance)handle, &createInfo, nullptr, &messenger);
     if (result != VK_SUCCESS)
     {
-        ERROR("Debug messenger failed to create.");
+        cpp2dERROR("Debug messenger failed to create.");
         return nullptr;
     }
 
-    INFO("Debug messenger created successfully.");
+    cpp2dINFO("Debug messenger created successfully.");
     return (GDIDebugHandle)messenger;
 }
 
@@ -195,7 +195,7 @@ bool is_suitable_device(VkPhysicalDevice device, VkSurfaceKHR surface)
 
         if (!found) 
         {
-            ERROR("Extension '%s' not supported.", required_extensions[i]);
+            cpp2dERROR("Extension '%s' not supported.", required_extensions[i]);
             return false;
         }
     }
@@ -211,7 +211,7 @@ bool is_suitable_device(VkPhysicalDevice device, VkSurfaceKHR surface)
 // Find and pick out the physical device that satisfies all our requirements
 GDILogicDevice create_logic_device(GDIHandle handle, VkSurfaceKHR surface, VkPhysicalDevice* devices, I32 suitableDeviceIndex)
 {
-    INFO("Creating logic device.");
+    cpp2dINFO("Creating logic device.");
     VkInstance instance = (VkInstance)handle;
 
     // Now we grab the extensions needed for the device
@@ -226,7 +226,7 @@ GDILogicDevice create_logic_device(GDIHandle handle, VkSurfaceKHR surface, VkPhy
 
     if (suitableDeviceIndex < 0)
     {
-        FATAL("No suitable devices found for logic device creation.");
+        cpp2dFATAL("No suitable devices found for logic device creation.");
         return GDILogicDevice{
             .handle = nullptr,
             .physical_device_index = -1
@@ -277,7 +277,7 @@ GDILogicDevice create_logic_device(GDIHandle handle, VkSurfaceKHR surface, VkPhy
     VkResult result = vkCreateDevice(suitable_device, &createInfo, nullptr, &_device);
     if (result != VK_SUCCESS)
     {
-        FATAL("Failed to create device!");
+        cpp2dFATAL("Failed to create device!");
         return GDILogicDevice{
             .handle = nullptr,
             .physical_device_index = -1
@@ -285,7 +285,7 @@ GDILogicDevice create_logic_device(GDIHandle handle, VkSurfaceKHR surface, VkPhy
     }
 
 
-    INFO("Successfully created logic device.");
+    cpp2dINFO("Successfully created logic device.");
     return GDILogicDevice {
         .handle = (GDIDeviceHandle)_device,
         .physical_device_index = suitableDeviceIndex
@@ -295,7 +295,7 @@ GDILogicDevice create_logic_device(GDIHandle handle, VkSurfaceKHR surface, VkPhy
 // Creates a vulkan instance
 GDIHandle create_instance()
 {
-    INFO("Creating vulkan instance.");
+    cpp2dINFO("Creating vulkan instance.");
 
     // Get the extensions needed for glfw
     
@@ -313,7 +313,7 @@ GDIHandle create_instance()
 #ifdef DEBUG
     if (!validation_layers_supported())
     {
-        FATAL("In debug mode, but no validation layers are supported.");
+        cpp2dFATAL("In debug mode, but no validation layers are supported.");
         return nullptr;
     }
 
@@ -358,7 +358,7 @@ GDIHandle create_instance()
 
 #ifdef DEBUG
     CU32 validation_layer_count = sizeof(validation_layers) / sizeof(const char*);
-    INFO("Enabling %u validation layer(s).", validation_layer_count);
+    cpp2dINFO("Enabling %u validation layer(s).", validation_layer_count);
     createInfo.enabledLayerCount   = validation_layer_count;
     createInfo.ppEnabledLayerNames = validation_layers;
 #endif
@@ -367,10 +367,10 @@ GDIHandle create_instance()
     VkResult   result = vkCreateInstance(&createInfo, nullptr, &instance);
     if (result != VK_SUCCESS) 
     {
-        FATAL("vkCreateInstance returned %i", result);
+        cpp2dFATAL("vkCreateInstance returned %i", result);
         return nullptr;
     }
 
-    INFO("Vulkan instance created successfully.");
+    cpp2dINFO("Vulkan instance created successfully.");
     return (GDIHandle)instance;
 }

@@ -12,8 +12,7 @@ namespace cpp2d::Graphics
         {
             U32          count;
             FormatHandle format;
-            ImageHandle*     images;
-            ImageViewHandle* image_views;
+            GDIImage*    images;
         } _swapchain_images;
 
         SurfaceHandle   _handle;

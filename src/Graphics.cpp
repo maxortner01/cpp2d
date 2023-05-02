@@ -2,15 +2,15 @@
 #   include <loguru.hpp>
 #   include <loguru.cpp>
 
-#   define FATAL(...) LOG_F(FATAL, __VA_ARGS__)
-#   define ERROR(...) LOG_F(ERROR, __VA_ARGS__)
-#   define WARN(...)  LOG_F(WARNING, __VA_ARGS__)
-#   define INFO(...)  LOG_F(INFO, __VA_ARGS__) 
+#   define cpp2dFATAL(...) LOG_F(FATAL, __VA_ARGS__)
+#   define cpp2dERROR(...) LOG_F(ERROR, __VA_ARGS__)
+#   define cpp2dWARN(...)  LOG_F(WARNING, __VA_ARGS__)
+#   define cpp2dINFO(...)  LOG_F(INFO, __VA_ARGS__) 
 #else
-#   define FATAL(...) 
-#   define ERROR(...) 
-#   define WARN(...)
-#   define INFO(...)
+#   define cpp2dFATAL(...) 
+#   define cpp2dERROR(...) 
+#   define cpp2dWARN(...)
+#   define cpp2dINFO(...)
 #endif
 
 #define GLFW_INCLUDE_VULKAN

@@ -44,13 +44,18 @@ namespace cpp2d::Graphics
     typedef void* SurfaceHandle;
     typedef void* SwapChainHandle;
 
+    struct GDIImage
+    {
+        ImageHandle     image;
+        ImageViewHandle image_view;
+    };
+
     // Dangerous since images must be freed...
     struct SwapChainInfo
     {
         SwapChainHandle handle;
         U32 image_count;
-        ImageHandle*     images;
-        ImageViewHandle* image_views;
+        GDIImage* images;
         FormatHandle format;
     };
 
