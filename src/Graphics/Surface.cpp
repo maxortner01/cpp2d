@@ -7,7 +7,7 @@ namespace cpp2d::Graphics
         _swapchain_images{
             .count = 0,
             .format = 0,
-            .handles = nullptr,
+            .images = nullptr,
             .image_views = nullptr
         }
     {   }

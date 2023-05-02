@@ -1,12 +1,16 @@
 #include <cpp2d/Graphics.h>
 
+#ifdef GDI_VULKAN
+#   include <vulkan/vulkan.h>
+#endif
+
 #include <limits>
 #include <optional>
 #include <string>
 #include <cstring>
-#include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
+#include <cpp2d/Utility.h>
 
 namespace cpp2d::Graphics
 {
@@ -24,15 +28,14 @@ namespace cpp2d::Graphics
         }
 
         {
-            void* arguments = std::malloc(sizeof(void*));
-            std::memcpy(arguments, &_handle, sizeof(void*));
+            Utility::ArgumentList arguments;
+            arguments.set<VkInstance>((VkInstance)_handle);
 
-            _objects.emplace(
+            _objects.push(
                 GDIObjectInstance {
-                    .type           = GDIObject::Instance,
-                    .handle         = _handle,
-                    .argument_count = 1,
-                    .arguments      = arguments
+                    .type      = GDIObject::Instance,
+                    .handle    = _handle,
+                    .arguments = arguments
                 }
             );
         }
@@ -42,15 +45,17 @@ namespace cpp2d::Graphics
             ERROR("Debug messenger failed to create.");
         else
         {
-            void** arguments = (void**)std::malloc(sizeof(void*) * 2);
-            arguments[0] = _handle;
-            arguments[1] = _debug;
-            _objects.emplace(
+            Utility::ArgumentList arguments;
+            arguments.set<VkInstance, VkDebugUtilsMessengerEXT>(
+                (VkInstance)_handle,
+                (VkDebugUtilsMessengerEXT)_debug
+            );
+            
+            _objects.push(
                 GDIObjectInstance {
-                    .type           = GDIObject::DebugMessenger,
-                    .handle         = _debug,
-                    .argument_count = 2,
-                    .arguments      = arguments
+                    .type      = GDIObject::DebugMessenger,
+                    .handle    = _debug,
+                    .arguments = arguments
                 }
             );
         }
@@ -68,21 +73,20 @@ namespace cpp2d::Graphics
         {
             GDIObjectInstance& object = _objects.top();
 
-            Utility::TypeIterator it(object.arguments);
             switch (object.type)
             {
             case GDIObject::Instance:
                 {
                     INFO("Destroying vulkan instance.");
-                    VkInstance instance = it.get<VkInstance>();
+                    VkInstance instance = object.arguments.get<VkInstance>();
                     vkDestroyInstance(instance, nullptr);
                     break;
                 }
 
             case GDIObject::DebugMessenger:
                 {
-                    VkInstance                instance = it.get<VkInstance>();
-                    VkDebugUtilsMessengerEXT messenger = it.get<VkDebugUtilsMessengerEXT>();
+                    VkInstance                instance = object.arguments.get<VkInstance>();
+                    VkDebugUtilsMessengerEXT messenger = object.arguments.get<VkDebugUtilsMessengerEXT>();
 
                     INFO("Destroying debug messenger.");
                     DestroyDebugUtilsMessengerEXT(instance, messenger, nullptr);
@@ -92,7 +96,7 @@ namespace cpp2d::Graphics
             case GDIObject::Device:
                 {
                     INFO("Destroying logic device.");
-                    VkDevice device = it.get<VkDevice>();
+                    VkDevice device = object.arguments.get<VkDevice>();
                     vkDestroyDevice(device, nullptr);
                     break;
                 }
@@ -100,8 +104,8 @@ namespace cpp2d::Graphics
             case GDIObject::Surface:
                 {
                     INFO("Destroying surface.");
-                    VkInstance instance  = it.get<VkInstance>();
-                    VkSurfaceKHR surface = it.get<VkSurfaceKHR>();
+                    VkInstance instance  = object.arguments.get<VkInstance>();
+                    VkSurfaceKHR surface = object.arguments.get<VkSurfaceKHR>();
 
                     vkDestroySurfaceKHR(instance, surface, nullptr);
                     break;
@@ -110,15 +114,15 @@ namespace cpp2d::Graphics
             case GDIObject::Swapchain:
                 {
                     INFO("Destroying swapchain.");
-                    VkDevice          device = it.get<VkDevice>();
-                    VkSwapchainKHR swapchain = it.get<VkSwapchainKHR>();
+                    VkDevice          device = object.arguments.get<VkDevice>();
+                    VkSwapchainKHR swapchain = object.arguments.get<VkSwapchainKHR>();
 
                     vkDestroySwapchainKHR(device, swapchain, nullptr);
                     break;
                 }
             }
 
-            std::free(object.arguments);
+            object.arguments.free();
             _objects.pop();
         }
     }
@@ -189,23 +193,25 @@ namespace cpp2d::Graphics
         {
             ERROR("Error creating swapchain: %i", result);
             return SwapChainInfo {
-                .format = 0,
                 .handle = nullptr,
                 .image_count = 0,
                 .images = nullptr,
-                .image_views = nullptr
+                .image_views = nullptr,
+                .format = 0,
             };
         }
 
-        void** arguments = (void**)std::malloc(sizeof(void*) * 2);
-        arguments[0] = _device.handle;
-        arguments[1] = swapchain;
+        Utility::ArgumentList arguments;
+        arguments.set<VkDevice, VkSwapchainKHR>(
+            (VkDevice)_device.handle,
+            (VkSwapchainKHR)swapchain
+        );
 
-        _objects.emplace(
+        _objects.push(
             GDIObjectInstance {
-                .type           = GDIObject::Swapchain,
-                .handle         = swapchain,
-                .arguments      = arguments
+                .type      = GDIObject::Swapchain,
+                .handle    = swapchain,
+                .arguments = arguments
             }
         );
 
@@ -236,15 +242,17 @@ namespace cpp2d::Graphics
             return nullptr;
         }
 
-        void** arguments = (void**)std::malloc(sizeof(VkInstance) + sizeof(VkSurfaceKHR));
-        arguments[0] = _handle;
-        arguments[1] = surface;
-        _objects.emplace(
+        Utility::ArgumentList arguments;
+        arguments.set<VkInstance, VkSurfaceKHR>(
+            (VkInstance)_handle,
+            (VkSurfaceKHR)surface
+        );
+        
+        _objects.push(
             GDIObjectInstance {
-                .type           = GDIObject::Surface,
-                .handle         = surface,
-                .argument_count = 2,
-                .arguments      = arguments
+                .type      = GDIObject::Surface,
+                .handle    = surface,
+                .arguments = arguments
             }
         );
 
@@ -270,14 +278,14 @@ namespace cpp2d::Graphics
         }
 
         {
-            void** arguments = (void**)std::malloc(sizeof(void*));
-            arguments[0] = _device.handle;
-            _objects.emplace(
+            Utility::ArgumentList arguments;
+            arguments.set<VkDevice>((VkDevice)_device.handle);
+
+            _objects.push(
                 GDIObjectInstance {
-                    .type           = GDIObject::Device,
-                    .handle         = _device.handle,
-                    .argument_count = 1,
-                    .arguments      = arguments
+                    .type      = GDIObject::Device,
+                    .handle    = _device.handle,
+                    .arguments = arguments
                 }
             );
         }

@@ -28,8 +28,7 @@ namespace cpp2d::Graphics
     {
         GDIObject type;
         void*     handle;
-        U32       argument_count;
-        void*     arguments;
+        Utility::ArgumentList arguments;
     };
 
     class CPP2D_DLL GDI :

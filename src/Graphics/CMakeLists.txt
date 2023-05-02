@@ -26,10 +26,10 @@ set(INCLUDES
 )
 
 # I still don't know how to do this properly
-if (CMAKE_BUILD_TYPE MATCHES "Debug")
+#if (CMAKE_BUILD_TYPE MATCHES "Debug")
     list(APPEND DEFINITIONS DEBUG)
     list(APPEND INCLUDES ${CMAKE_SOURCE_DIR}/extern/loguru)
-endif()
+#endif()
 
 include_directories(${INCLUDES})
 add_compile_definitions(${DEFINITIONS})
