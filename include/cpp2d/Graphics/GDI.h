@@ -34,7 +34,8 @@ namespace cpp2d::Graphics
 
     class CPP2D_DLL GDI :
         public Utility::Singleton<GDI>,
-        public Utility::State<GDIState>
+        public Utility::State<GDIState>,
+        public Utility::NoCopy
     {
         std::stack<GDIObjectInstance> _objects;
 
@@ -52,9 +53,11 @@ namespace cpp2d::Graphics
         void _init();
         void _delete();
 
-    public:
         GDI();
         ~GDI();
+
+    public:
+        friend class Singleton<GDI>;
 
         SwapChainInfo createSwapChain(const Surface* window);
         SurfaceHandle getSurfaceHandle(const Window* window);
