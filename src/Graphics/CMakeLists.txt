@@ -10,7 +10,18 @@ set(DEFINITIONS GDI_VULKAN CPP2D_GRAPHICS_BUILD)
 find_package(Vulkan REQUIRED)
 find_library(GLFW3 glfw3 HINTS ${CMAKE_BINARY_DIR}/extern/glfw/src)
 
+# !--- Need to check if in debug mode
+cmake_path(GET Vulkan_LIBRARIES PARENT_PATH Vulkan_LIBRARY_DIR)
+find_library(SHADERC shaderc_combinedd HINTS ${Vulkan_LIBRARY_DIR})
+
 set(LIBS ${Vulkan_LIBRARIES} ${GLFW3})
+if (${SHADERC} MATCHES "SHADERC-NOTFOUND")
+    message("Shaderc not being used")
+else()
+    list(APPEND DEFINITIONS USE_SHADERC)
+    list(APPEND LIBS ${SHADERC})
+endif()
+
 if (${APPLE})
     find_library(COCOA Cocoa)
     find_library(IOKIT IOKit)

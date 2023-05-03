@@ -20,3 +20,4 @@
 #include "./Graphics/DrawWindow.cpp"
 #include "./Graphics/GDI.cpp"
 #include "./Graphics/Surface.cpp"
+#include "./Graphics/Shader.cpp"
