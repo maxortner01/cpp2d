@@ -5,3 +5,4 @@
 #include "./Graphics/DrawWindow.h"
 #include "./Graphics/GDI.h"
 #include "./Graphics/Shader.h"
+#include "./Graphics/GraphicsPipeline.h"

@@ -130,6 +130,16 @@ namespace cpp2d::Graphics
                     vkDestroyImageView(device, image_view, nullptr);
                     break;
                 }
+            
+            case GDIObject::Shader:
+                {
+                    cpp2dINFO("Destroying shader module.");
+                    VkDevice device       = object.arguments.get<VkDevice>();
+                    VkShaderModule shader = object.arguments.get<VkShaderModule>();
+
+                    vkDestroyShaderModule(device, shader, nullptr);
+                    break;
+                }
 
             }
 
@@ -381,5 +391,60 @@ namespace cpp2d::Graphics
     GDIHandle GDI::getHandle() const
     {
         return _handle;
+    }
+
+    ShaderHandle GDI::createShader(const U32* data, U32 count)
+    {
+        assert(_device.handle);
+
+        cpp2dINFO("Creating shader");
+        VkShaderModuleCreateInfo create_info{
+            .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+            .codeSize = count * sizeof(U32),
+            .pCode = data
+        };
+        
+        VkShaderModule shader;
+        VkResult result = vkCreateShaderModule((const VkDevice)_device.handle, &create_info, nullptr, &shader);
+        if (result != VK_SUCCESS)
+        {
+            cpp2dERROR("Error creating shader module %u", result);
+            return nullptr;
+        }
+
+        Utility::ArgumentList arguments;
+        arguments.set(
+            (VkDevice)_device.handle,
+            shader
+        );
+
+        _objects.push(GDIObjectInstance{
+            .type = GDIObject::Shader,
+            .handle = shader,
+            .arguments = arguments
+        });
+
+        return shader;
+    }
+
+    PipelineHandle GDI::createPipeline(const ScopedData<Shader*>& shaders)
+    {
+        ScopedData<VkPipelineShaderStageCreateInfo> create_infos(shaders.size());
+        for (U32 i = 0; i < create_infos.size(); i++)
+        {
+            VkShaderStageFlagBits type;
+            switch (shaders[i]->getType())
+            {
+            case ShaderType::Vertex:    type = VK_SHADER_STAGE_VERTEX_BIT;      break;
+            case ShaderType::Fragment:  type = VK_SHADER_STAGE_FRAGMENT_BIT;    break;
+            }
+
+            create_infos[i] = VkPipelineShaderStageCreateInfo{
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .stage = type,
+                .module = static_cast<VkShaderModule>(shaders[i]->getHandle()),
+                .pName = "main"
+            };
+        }
     }
 }

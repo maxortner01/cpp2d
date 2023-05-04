@@ -10,9 +10,11 @@ set(DEFINITIONS GDI_VULKAN CPP2D_GRAPHICS_BUILD)
 find_package(Vulkan REQUIRED)
 find_library(GLFW3 glfw3 HINTS ${CMAKE_BINARY_DIR}/extern/glfw/src)
 
+# set to shaderc_combined if in Release, otherwise shaderc_combinedd
+set(SHADERC_LIB_NAME shaderc_combined)
 # !--- Need to check if in debug mode
 cmake_path(GET Vulkan_LIBRARIES PARENT_PATH Vulkan_LIBRARY_DIR)
-find_library(SHADERC shaderc_combinedd HINTS ${Vulkan_LIBRARY_DIR})
+find_library(SHADERC ${SHADERC_LIB_NAME} HINTS ${Vulkan_LIBRARY_DIR})
 
 set(LIBS ${Vulkan_LIBRARIES} ${GLFW3})
 if (${SHADERC} MATCHES "SHADERC-NOTFOUND")

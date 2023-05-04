@@ -43,6 +43,8 @@ namespace cpp2d::Graphics
     typedef void* ImageViewHandle;
     typedef void* SurfaceHandle;
     typedef void* SwapChainHandle;
+    typedef void* ShaderHandle;
+    typedef void* PipelineHandle;
 
     struct GDIImage
     {

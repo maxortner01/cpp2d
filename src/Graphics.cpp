@@ -21,3 +21,4 @@
 #include "./Graphics/GDI.cpp"
 #include "./Graphics/Surface.cpp"
 #include "./Graphics/Shader.cpp"
+#include "./Graphics/GraphicsPipeline.cpp"

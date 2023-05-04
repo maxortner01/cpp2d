@@ -14,17 +14,25 @@ namespace cpp2d
     {
         Success,
         WaitingForContent,
-        CompilationError
+        CompilationError,
+        CreationError
     };
 
     class CPP2D_DLL Shader :
-        public Utility::State<ShaderState>
+        public Utility::State<ShaderState>,
+        public Utility::NoCopy
     {
-    public:
-        Shader();
+        Graphics::ShaderHandle _handle;
+        ShaderType _type;
 
-        void fromFile(const ShaderType& type, const char* filename);
-        void fromString(const ShaderType& type, const char* string);
-        void fromBytes(const ShaderType& type, const U32* const contents, U32 count);
+    public:
+        Shader(const ShaderType& type);
+
+        void fromFile(const char* filename);
+        void fromString(const char* string);
+        void fromBytes(const U32* const contents, U32 count);
+
+        ShaderType getType() const;
+        Graphics::ShaderHandle getHandle() const;
     };
 }

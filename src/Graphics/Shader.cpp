@@ -10,11 +10,12 @@
 
 namespace cpp2d
 {
-    Shader::Shader() :
-        Utility::State<ShaderState>(ShaderState::WaitingForContent)
+    Shader::Shader(const ShaderType& type) :
+        Utility::State<ShaderState>(ShaderState::WaitingForContent),
+        _type(type)
     {   }
 
-    void Shader::fromFile(const ShaderType& type, const char* filename)
+    void Shader::fromFile(const char* filename)
     {
         std::ifstream file(filename);
         assert(file);
@@ -24,17 +25,17 @@ namespace cpp2d
             (std::istreambuf_iterator<char>())
         );
 
-        fromString(type, content.c_str());
+        fromString(content.c_str());
     }
 
-    void Shader::fromString(const ShaderType& type, const char* string)
-    {       
+    void Shader::fromString(const char* string)
+    {
 #   ifdef USE_SHADERC_AND_VULKAN
         shaderc::Compiler compiler;
         shaderc::CompileOptions options;
 
         shaderc_shader_kind kind;
-        switch (type)
+        switch (_type)
         {
         case ShaderType::Vertex:    kind = shaderc_glsl_vertex_shader;   break;
         case ShaderType::Fragment:  kind = shaderc_glsl_fragment_shader; break;
@@ -53,7 +54,7 @@ namespace cpp2d
 
         cpp2dINFO("Successfully compiled shader from GLSL code.");
 
-        fromBytes(type, compiling.begin(), std::distance(compiling.begin(), compiling.end()));
+        fromBytes(compiling.begin(), std::distance(compiling.begin(), compiling.end()));
 #   endif
 
 #   if !defined(USE_SHADERC) && defined(GDI_VULKAN)
@@ -61,8 +62,23 @@ namespace cpp2d
 #   endif
     }
 
-    void Shader::fromBytes(const ShaderType& type, const U32* const contents, U32 count)
+    void Shader::fromBytes(const U32* contents, U32 count)
     {
+        _handle = Graphics::GDI::get().createShader(contents, count);
+        
+        if (!_handle)
+            setState(ShaderState::CreationError);
+        else
+            setState(ShaderState::Success);
+    }
 
+    ShaderType Shader::getType() const
+    {
+        return _type;
+    }
+
+    Graphics::PipelineHandle Shader::getHandle() const
+    {
+        return _handle;
     }
 }

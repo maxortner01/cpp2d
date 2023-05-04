@@ -16,7 +16,8 @@ namespace cpp2d
     };
 
     class CPP2D_DLL Window :
-        public Utility::State<WindowState>
+        public Utility::State<WindowState>,
+        public Utility::NoCopy
     {
         WindowHandle _handle;
 

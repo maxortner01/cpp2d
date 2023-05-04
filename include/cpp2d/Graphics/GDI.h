@@ -5,8 +5,14 @@
 #include "../Util.h"
 #include "../Utility.h"
 
+namespace cpp2d
+{
+    class Shader;
+}
+
 namespace cpp2d::Graphics
 {
+
     enum class GDIState
     {
         Initialized,
@@ -22,7 +28,8 @@ namespace cpp2d::Graphics
         Device,
         Surface,
         Swapchain,
-        ImageView
+        ImageView,
+        Shader
     };
 
     struct GDIObjectInstance
@@ -62,5 +69,8 @@ namespace cpp2d::Graphics
         SwapChainInfo createSwapChain(const Surface* window);
         SurfaceHandle getSurfaceHandle(const Window* window);
         GDIHandle     getHandle() const;
+
+        ShaderHandle   createShader(const U32* data, U32 count);
+        PipelineHandle createPipeline(const ScopedData<Shader*>& shaders);
     };
 }

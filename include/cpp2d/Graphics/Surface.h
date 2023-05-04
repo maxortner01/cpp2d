@@ -6,7 +6,8 @@
 namespace cpp2d::Graphics
 {
     class CPP2D_DLL Surface :
-        public Sizable
+        public Sizable,
+        public Utility::NoCopy
     {
         struct 
         {
