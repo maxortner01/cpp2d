@@ -8,6 +8,7 @@
 namespace cpp2d
 {
     class Shader;
+    class Surface;
 }
 
 namespace cpp2d::Graphics
@@ -29,7 +30,12 @@ namespace cpp2d::Graphics
         Surface,
         Swapchain,
         ImageView,
-        Shader
+        Shader,
+        PipelineLayout,
+        Renderpass,
+        GraphicsPipeline,
+        Framebuffer,
+        CommandPool
     };
 
     struct GDIObjectInstance
@@ -66,11 +72,15 @@ namespace cpp2d::Graphics
     public:
         friend class Singleton<GDI>;
 
-        SwapChainInfo createSwapChain(const Surface* window);
-        SurfaceHandle getSurfaceHandle(const Window* window);
-        GDIHandle     getHandle() const;
+        FramebufferHandle createFramebuffer(const ImageViewHandle& imageView, const Surface* renderPass);
+        RenderPassHandle  createRenderPass(const Surface* surface);
+        SwapChainInfo     createSwapChain(const Surface* window);
+        SurfaceHandle     getSurfaceHandle(const Window* window);
+        GDIHandle         getHandle() const;
 
-        ShaderHandle   createShader(const U32* data, U32 count);
-        PipelineHandle createPipeline(const ScopedData<Shader*>& shaders);
+        ShaderHandle createShader(const U32* data, U32 count);
+        GDIPipeline  createPipeline(const ScopedData<Shader*>& shaders, const Surface* surface);
+        CommandPoolHandle   createCommandPool(const Surface* surface);
+        CommandBufferHandle createCommandBuffer(const CommandPoolHandle& commandPool);
     };
 }

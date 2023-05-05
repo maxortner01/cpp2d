@@ -4,9 +4,10 @@
 
 namespace cpp2d
 {
-    GraphicsPipeline::GraphicsPipeline(std::initializer_list<ShaderType> shaders, const Graphics::AttributeFrame& attributes) :
+    GraphicsPipeline::GraphicsPipeline(std::initializer_list<ShaderType> shaders, const Graphics::Surface& surface, const Graphics::AttributeFrame& attributes) :
         Utility::State<GraphicsPipelineState>(GraphicsPipelineState::NotBuilt),
         _attributes(attributes),
+        _surface(&surface),
         _shaders(shaders.size())
     {
         for (U32 i = 0; i < _shaders.size(); i++)
@@ -30,11 +31,18 @@ namespace cpp2d
 
     void GraphicsPipeline::create()
     {
-        assert(isComplete());
+        assert(shadersComplete());
         assert(getState() == GraphicsPipelineState::NotBuilt);
+
+        _pipeline = Graphics::GDI::get().createPipeline(_shaders, _surface);
+
+        if (_pipeline.layout)
+            setState(GraphicsPipelineState::Success);
+        else
+            setState(GraphicsPipelineState::Failed);
     }
 
-    bool GraphicsPipeline::isComplete() const
+    bool GraphicsPipeline::shadersComplete() const
     {
         for (U32 i = 0; i < _shaders.size(); i++)
             if (_shaders[i]->getState() != ShaderState::Success)

@@ -22,6 +22,12 @@ namespace cpp2d
         setSwapChain(
             Graphics::GDI::get().createSwapChain(this)
         );
+
+        setRenderPass(
+            Graphics::GDI::get().createRenderPass(this)
+        );
+
+        createFramebuffers();
     }
 
     DrawWindow::~DrawWindow()

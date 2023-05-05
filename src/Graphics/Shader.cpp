@@ -77,7 +77,7 @@ namespace cpp2d
         return _type;
     }
 
-    Graphics::PipelineHandle Shader::getHandle() const
+    Graphics::ShaderHandle Shader::getHandle() const
     {
         return _handle;
     }

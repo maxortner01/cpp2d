@@ -38,13 +38,24 @@ typedef const R64 CR64;
 
 namespace cpp2d::Graphics
 {
-    typedef void* FormatHandle;
+    typedef U32   FormatHandle;
     typedef void* ImageHandle;
     typedef void* ImageViewHandle;
     typedef void* SurfaceHandle;
     typedef void* SwapChainHandle;
     typedef void* ShaderHandle;
     typedef void* PipelineHandle;
+    typedef void* PipelineLayoutHandle;
+    typedef void* RenderPassHandle;
+    typedef void* FramebufferHandle;
+    typedef void* CommandPoolHandle;
+    typedef void* CommandBufferHandle;
+
+    struct GDIPipeline
+    {
+        PipelineHandle       handle;
+        PipelineLayoutHandle layout;
+    };
 
     struct GDIImage
     {

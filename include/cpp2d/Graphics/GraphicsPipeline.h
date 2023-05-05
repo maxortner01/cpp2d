@@ -6,29 +6,38 @@
 
 namespace cpp2d
 {
+namespace Graphics
+{
+    class Surface;
+}
+
     class Shader;
     enum class ShaderType;
 
     enum class GraphicsPipelineState
     {
         Success,
-        NotBuilt
+        NotBuilt,
+        Failed
     };
 
     class GraphicsPipeline :
         public Utility::State<GraphicsPipelineState>,
         public Utility::NoCopy
     {
+        Graphics::GDIPipeline _pipeline;
+
         ScopedData<Shader*> _shaders;
         Graphics::AttributeFrame _attributes;
+        const Graphics::Surface* _surface;
 
     public:
-        GraphicsPipeline(std::initializer_list<ShaderType> shaders, const Graphics::AttributeFrame& attributes);
+        GraphicsPipeline(std::initializer_list<ShaderType> shaders, const Graphics::Surface& surface, const Graphics::AttributeFrame& attributes);
         ~GraphicsPipeline();
 
         Shader& getShader(const ShaderType& type);
         void create();    
 
-        bool isComplete() const;
+        bool shadersComplete() const;
     };
 }
