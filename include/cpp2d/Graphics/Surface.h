@@ -29,6 +29,7 @@ namespace cpp2d::Graphics
         SurfaceHandle    _handle;
         SwapChainHandle  _swapchain;
         RenderPassHandle _render_pass;
+        CommandPoolHandle _command_pool;
 
     protected:
         void setHandle(SurfaceHandle handle);
@@ -39,6 +40,9 @@ namespace cpp2d::Graphics
     public:
         Surface(const Vec2u& extent);
         ~Surface();
+
+        void startRenderPass();
+        void endRenderPass();
 
         FormatHandle  getFormat() const;
         SurfaceHandle getHandle() const;

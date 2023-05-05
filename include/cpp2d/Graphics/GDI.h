@@ -4,6 +4,7 @@
 
 #include "../Util.h"
 #include "../Utility.h"
+#include "GDILifetime.h"
 
 namespace cpp2d
 {
@@ -22,36 +23,12 @@ namespace cpp2d::Graphics
         DeviceCreationFailed
     };
 
-    enum class GDIObject
-    {
-        Instance,
-        DebugMessenger,
-        Device,
-        Surface,
-        Swapchain,
-        ImageView,
-        Shader,
-        PipelineLayout,
-        Renderpass,
-        GraphicsPipeline,
-        Framebuffer,
-        CommandPool
-    };
-
-    struct GDIObjectInstance
-    {
-        GDIObject type;
-        void*     handle;
-        Utility::ArgumentList arguments;
-    };
-
     class CPP2D_DLL GDI :
         public Utility::Singleton<GDI>,
         public Utility::State<GDIState>,
-        public Utility::NoCopy
+        public Utility::NoCopy,
+        public GDILifetime
     {
-        std::stack<GDIObjectInstance> _objects;
-
         struct 
         {
             U32                device_count;
@@ -80,7 +57,7 @@ namespace cpp2d::Graphics
 
         ShaderHandle createShader(const U32* data, U32 count);
         GDIPipeline  createPipeline(const ScopedData<Shader*>& shaders, const Surface* surface);
-        CommandPoolHandle   createCommandPool(const Surface* surface);
+        CommandPoolHandle   createCommandPool(const Surface* surface, GDILifetime* lifetimeObject = nullptr);
         CommandBufferHandle createCommandBuffer(const CommandPoolHandle& commandPool);
     };
 }
