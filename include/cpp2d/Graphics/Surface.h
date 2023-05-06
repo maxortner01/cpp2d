@@ -16,12 +16,15 @@ namespace cpp2d::Graphics
     struct CPP2D_DLL Frame :
         public Graphics::GDILifetime
     {
-        GDIImage            image;
         CommandPool         command_pool;
-        FramebufferHandle   framebuffer;
         CommandBufferHandle command_buffers;
+        struct {
+            SemaphoreHandle image_avaliable;
+            SemaphoreHandle render_finished;
+            FenceHandle     in_flight;
+        } sync_objects;
 
-        Frame(GDIImage _image, Surface* parent);
+        Frame(Surface* parent);
     };
 
     
@@ -30,13 +33,24 @@ namespace cpp2d::Graphics
         public Graphics::GDILifetime,
         public Utility::NoCopy
     {
+        struct _Framebuffer
+        {
+            GDIImage          image;
+            FramebufferHandle framebuffer;
+        };
         
+        const U32 _OVERLAP = 1; 
         U32 _current_frame;
+        U32 _current_image_index;
 
-        U32              _frame_count;
+        U32              _image_count;
         Frame*           _frames;
+        _Framebuffer*    _framebuffers;
         RenderPassHandle _render_pass;
         FormatHandle     _format;
+    
+    protected:
+        void setCurrentImageIndex(const U32& index);
 
     public:
         Surface(const Vec2u& extent);
@@ -45,10 +59,13 @@ namespace cpp2d::Graphics
         void create(const Vec2u& extent, const SwapChainInfo& swapchain);
         void create(const Vec2u& extent);
 
-        void startRenderPass(const U32& frameIndex = 0);
-        void endRenderPass();
+        void _startRenderPass();
+        void _endRenderPass();
 
-        Frame& getFrame(const U32& index) const;
+        Frame& getFrame() const;
+
+        U32 getCurrentImageIndex() const;
+
 
         FormatHandle  getFormat() const;
         RenderPassHandle getRenderPass() const;

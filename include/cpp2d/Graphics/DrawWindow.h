@@ -19,6 +19,9 @@ namespace cpp2d
 
         void display() const override;
 
+        void startRenderPass();
+        void endRenderPass();
+
         Graphics::SurfaceHandle getSurfaceHandle() const;
     };
 }

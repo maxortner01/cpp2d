@@ -72,6 +72,21 @@ namespace cpp2d::Graphics
         clearStack();
     }
 
+    U32 GDI::getPresentIndex(DrawWindow* surface)
+    {
+        QueueFamilyIndices indices = findQueueFamilies(
+            static_cast<VkPhysicalDevice>(_physical_devices.handles[_suitable_device_index]), 
+            static_cast<VkSurfaceKHR>(surface->getSurfaceHandle())
+        );
+
+        return indices.present_index.value();
+    }
+
+    GDILogicDevice GDI::getLogicDevice()
+    {
+        return _device;
+    }
+
     FramebufferHandle GDI::createFramebuffer(const ImageViewHandle& imageView, const Surface* surface, GDILifetime* lifetime)
     {
         if (!lifetime) lifetime = this;
@@ -142,12 +157,23 @@ namespace cpp2d::Graphics
             .pColorAttachments = &color_ref
         };  
 
+        VkSubpassDependency dependency {
+            .srcSubpass = VK_SUBPASS_EXTERNAL,
+            .dstSubpass = 0,
+            .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .srcAccessMask = 0,
+            .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+        };
+
         VkRenderPassCreateInfo create_info {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
             .attachmentCount = 1,
             .pAttachments = &color_attachment,
             .subpassCount = 1,
-            .pSubpasses = &subpass
+            .pSubpasses = &subpass,
+            .dependencyCount = 1,
+            .pDependencies = &dependency
         };
 
         const VkDevice device = static_cast<VkDevice>(_device.handle);
@@ -420,6 +446,81 @@ namespace cpp2d::Graphics
     GDIHandle GDI::getHandle() const
     {
         return _handle;
+    }
+
+    U32 GDI::getNextImage(const SwapChainHandle& swapchain, const Frame& frame)
+    {
+        U32 image_index;
+        VkFence        fence      = static_cast<VkFence>(frame.sync_objects.in_flight);
+        VkSemaphore    semaphore  = static_cast<VkSemaphore>(frame.sync_objects.image_avaliable);
+        VkSwapchainKHR _swapchain = static_cast<VkSwapchainKHR>(swapchain);
+        const VkDevice device     = static_cast<VkDevice>(frame.command_pool.device);
+        vkAcquireNextImageKHR(device, _swapchain, 10000000, semaphore, VK_NULL_HANDLE, &image_index);
+
+        return image_index;
+    }
+
+    SemaphoreHandle GDI::createSemaphore(GDILifetime* lifetime)
+    {
+        if (!lifetime) lifetime = this;
+
+        VkSemaphoreCreateInfo create_info {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+        };
+
+        VkSemaphore semaphore;
+        const VkDevice device = static_cast<VkDevice>(_device.handle);
+        VkResult result = vkCreateSemaphore(device, &create_info, nullptr, &semaphore);
+        if (result != VK_SUCCESS)
+        {
+            cpp2dERROR("Semaphore creation failed.");
+            return nullptr;
+        }
+        else
+        {
+            Utility::ArgumentList arguments;
+            arguments.set(device, semaphore);
+
+            lifetime->pushObject(GDIObjectInstance {
+                .type = GDIObject::Semaphore,
+                .handle = semaphore,
+                .arguments = arguments
+            });
+        }
+
+        return static_cast<SemaphoreHandle>(semaphore);
+    }
+
+    FenceHandle GDI::createFence(GDILifetime* lifetime)
+    {
+        if (!lifetime) lifetime = this;
+
+        VkFenceCreateInfo create_info {
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+            .flags = VK_FENCE_CREATE_SIGNALED_BIT
+        };
+
+        VkFence fence;
+        const VkDevice device = static_cast<VkDevice>(_device.handle);
+        VkResult result = vkCreateFence(device, &create_info, nullptr, &fence);
+        if (result != VK_SUCCESS)
+        {
+            cpp2dERROR("Fence creation failed.");
+            return nullptr;
+        }
+        else
+        {
+            Utility::ArgumentList arguments;
+            arguments.set(device, fence);
+
+            lifetime->pushObject(GDIObjectInstance {
+                .type = GDIObject::Fence,
+                .handle = fence,
+                .arguments = arguments
+            });
+        }
+
+        return static_cast<FenceHandle>(fence);
     }
 
     ShaderHandle GDI::createShader(const U32* data, U32 count, GDILifetime* lifetime)

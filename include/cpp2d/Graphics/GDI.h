@@ -9,11 +9,12 @@
 namespace cpp2d
 {
     class Shader;
-    class Surface;
 }
 
 namespace cpp2d::Graphics
 {
+    class Surface;
+    class Frame;
 
     enum class GDIState
     {
@@ -49,11 +50,19 @@ namespace cpp2d::Graphics
     public:
         friend class Singleton<GDI>;
 
+        U32 getPresentIndex(DrawWindow* surface);
+        GDILogicDevice getLogicDevice();
+
         FramebufferHandle createFramebuffer(const ImageViewHandle& imageView, const Surface* renderPass, GDILifetime* lifetime = nullptr);
         RenderPassHandle  createRenderPass(const Surface* surface);
         SwapChainInfo     createSwapChain(const DrawWindow* window);
         SurfaceHandle     getSurfaceHandle(const Window* window);
         GDIHandle         getHandle() const;
+
+        U32 getNextImage(const SwapChainHandle& swapchain, const Frame& frame);
+
+        SemaphoreHandle createSemaphore(GDILifetime* lifetime = nullptr);
+        FenceHandle     createFence(GDILifetime* lifetime = nullptr);
 
         ShaderHandle createShader(const U32* data, U32 count, GDILifetime* lifetime = nullptr);
         GDIPipeline  createPipeline(const ScopedData<Shader*>& shaders, Surface* surface);

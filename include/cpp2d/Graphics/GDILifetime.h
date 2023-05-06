@@ -18,7 +18,9 @@ namespace cpp2d::Graphics
         Renderpass,
         GraphicsPipeline,
         Framebuffer,
-        CommandPool
+        CommandPool,
+        Semaphore,
+        Fence
     };
 
     struct GDIObjectInstance

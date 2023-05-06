@@ -141,6 +141,26 @@ namespace cpp2d::Graphics
                     break;
                 }
 
+            case GDIObject::Semaphore:
+                {
+                    cpp2dINFO("Destroying semaphore.");
+                    VkDevice    device       = object.arguments.get<VkDevice>();
+                    VkSemaphore command_pool = object.arguments.get<VkSemaphore>();
+
+                    vkDestroySemaphore(device, command_pool, nullptr);
+                    break;
+                }
+
+            case GDIObject::Fence:
+                {
+                    cpp2dINFO("Destroying fence.");
+                    VkDevice device       = object.arguments.get<VkDevice>();
+                    VkFence  command_pool = object.arguments.get<VkFence>();
+
+                    vkDestroyFence(device, command_pool, nullptr);
+                    break;
+                }
+
             }
 
             object.arguments.free();

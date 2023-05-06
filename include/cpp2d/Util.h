@@ -55,6 +55,8 @@ namespace cpp2d::Graphics
     typedef void* FramebufferHandle;
     typedef void* CommandPoolHandle;
     typedef void* CommandBufferHandle;
+    typedef void* SemaphoreHandle;
+    typedef void* FenceHandle;
 
     struct CommandPool
     {
@@ -87,5 +89,6 @@ namespace cpp2d::Graphics
     {
         GDIDeviceHandle handle;
         I32 physical_device_index;
+        U32 graphics_queue;
     };
 }
