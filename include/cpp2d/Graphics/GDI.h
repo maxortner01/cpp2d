@@ -49,15 +49,15 @@ namespace cpp2d::Graphics
     public:
         friend class Singleton<GDI>;
 
-        FramebufferHandle createFramebuffer(const ImageViewHandle& imageView, const Surface* renderPass);
+        FramebufferHandle createFramebuffer(const ImageViewHandle& imageView, const Surface* renderPass, GDILifetime* lifetime = nullptr);
         RenderPassHandle  createRenderPass(const Surface* surface);
-        SwapChainInfo     createSwapChain(const Surface* window);
+        SwapChainInfo     createSwapChain(const DrawWindow* window);
         SurfaceHandle     getSurfaceHandle(const Window* window);
         GDIHandle         getHandle() const;
 
-        ShaderHandle createShader(const U32* data, U32 count);
-        GDIPipeline  createPipeline(const ScopedData<Shader*>& shaders, const Surface* surface);
-        CommandPoolHandle   createCommandPool(const Surface* surface, GDILifetime* lifetimeObject = nullptr);
+        ShaderHandle createShader(const U32* data, U32 count, GDILifetime* lifetime = nullptr);
+        GDIPipeline  createPipeline(const ScopedData<Shader*>& shaders, Surface* surface);
+        CommandPoolHandle   createCommandPool(GDILifetime* lifetime = nullptr);
         CommandBufferHandle createCommandBuffer(const CommandPoolHandle& commandPool);
     };
 }

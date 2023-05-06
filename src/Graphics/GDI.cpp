@@ -72,8 +72,10 @@ namespace cpp2d::Graphics
         clearStack();
     }
 
-    FramebufferHandle GDI::createFramebuffer(const ImageViewHandle& imageView, const Surface* surface)
+    FramebufferHandle GDI::createFramebuffer(const ImageViewHandle& imageView, const Surface* surface, GDILifetime* lifetime)
     {
+        if (!lifetime) lifetime = this;
+
         cpp2dINFO("Creating framebuffer.");
 
         const VkImageView images[] = {
@@ -103,7 +105,7 @@ namespace cpp2d::Graphics
             Utility::ArgumentList arguments;
             arguments.set(device, framebuffer);
 
-            _objects.push(GDIObjectInstance {
+            lifetime->pushObject(GDIObjectInstance {
                 .type = GDIObject::Framebuffer,
                 .handle = static_cast<void*>(framebuffer),
                 .arguments = arguments
@@ -175,22 +177,24 @@ namespace cpp2d::Graphics
         return static_cast<RenderPassHandle>(renderPass);
     }
 
-    SwapChainInfo GDI::createSwapChain(const Surface* surface)
+    SwapChainInfo GDI::createSwapChain(const DrawWindow* surface)
     {
         cpp2dINFO("Creating swapchain for surface.");
-        VkPhysicalDevice _suitable_device = (VkPhysicalDevice)_physical_devices.handles[_suitable_device_index];
+
+        const VkSurfaceKHR     _surface = static_cast<VkSurfaceKHR>(surface->getSurfaceHandle());
+        const VkPhysicalDevice _suitable_device = (VkPhysicalDevice)_physical_devices.handles[_suitable_device_index];
 
         VkSurfaceCapabilitiesKHR capabilities;
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_suitable_device, (VkSurfaceKHR)surface->getHandle(), &capabilities);
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_suitable_device, _surface, &capabilities);
 
         U32 format_count, present_mode_count;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(_suitable_device, (VkSurfaceKHR)surface->getHandle(), &present_mode_count, nullptr);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(_suitable_device, (VkSurfaceKHR)surface->getHandle(), &format_count, nullptr);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(_suitable_device, _surface, &present_mode_count, nullptr);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(_suitable_device, _surface, &format_count, nullptr);
 
         ScopedData<VkSurfaceFormatKHR> formats(format_count);
         ScopedData<VkPresentModeKHR> present_modes(present_mode_count);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(_suitable_device, (VkSurfaceKHR)surface->getHandle(), &present_mode_count, present_modes.ptr());
-        vkGetPhysicalDeviceSurfaceFormatsKHR(_suitable_device, (VkSurfaceKHR)surface->getHandle(), &format_count, formats.ptr());
+        vkGetPhysicalDeviceSurfacePresentModesKHR(_suitable_device, _surface, &present_mode_count, present_modes.ptr());
+        vkGetPhysicalDeviceSurfaceFormatsKHR(_suitable_device, _surface, &format_count, formats.ptr());
 
         VkSurfaceFormatKHR surface_format = choose_swapchain_format(formats.ptr(), formats.size());
         VkPresentModeKHR   present_mode   = choose_swapchain_present_mode(present_modes.ptr(), present_modes.size());
@@ -202,7 +206,7 @@ namespace cpp2d::Graphics
 
         VkSwapchainCreateInfoKHR create_info {
             .sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-            .surface          = (VkSurfaceKHR)surface->getHandle(),
+            .surface          = _surface,
             .minImageCount    = image_count,
             .imageFormat      = surface_format.format,
             .imageColorSpace  = surface_format.colorSpace,
@@ -216,7 +220,7 @@ namespace cpp2d::Graphics
             .oldSwapchain     = VK_NULL_HANDLE
         };
 
-        QueueFamilyIndices indices = findQueueFamilies(_suitable_device, (VkSurfaceKHR)surface->getHandle());
+        QueueFamilyIndices indices = findQueueFamilies(_suitable_device, _surface);
         U32 queue_family_indices[] = {
             indices.graphics_index.value(),
             indices.present_index.value()
@@ -236,7 +240,8 @@ namespace cpp2d::Graphics
         }
 
         VkSwapchainKHR swapchain;
-        VkResult result = vkCreateSwapchainKHR((VkDevice)_device.handle, &create_info, nullptr, &swapchain);
+        const VkDevice device = static_cast<VkDevice>(_device.handle);
+        VkResult result = vkCreateSwapchainKHR(device, &create_info, nullptr, &swapchain);
         if (result != VK_SUCCESS)
         {
             cpp2dERROR("Error creating swapchain: %i", result);
@@ -249,12 +254,9 @@ namespace cpp2d::Graphics
         }
 
         Utility::ArgumentList arguments;
-        arguments.set(
-            (VkDevice)_device.handle,
-            (VkSwapchainKHR)swapchain
-        );
+        arguments.set(device, swapchain);
 
-        _objects.push(
+        pushObject(
             GDIObjectInstance {
                 .type      = GDIObject::Swapchain,
                 .handle    = swapchain,
@@ -262,7 +264,6 @@ namespace cpp2d::Graphics
             }
         );
 
-        const VkDevice device = static_cast<VkDevice>(_device.handle);
         SwapChainInfo info {
             .handle = static_cast<SwapChainHandle>(swapchain),
             .format = static_cast<FormatHandle>(surface_format.format)
@@ -331,19 +332,17 @@ namespace cpp2d::Graphics
     {
         cpp2dINFO("Creating surface.");
         VkSurfaceKHR surface;
-        if (glfwCreateWindowSurface((VkInstance)_handle, (GLFWwindow*)window->getHandle(), nullptr, &surface) != VK_SUCCESS)
+        const VkInstance instance = static_cast<VkInstance>(_handle);
+        if (glfwCreateWindowSurface(instance, (GLFWwindow*)window->getHandle(), nullptr, &surface) != VK_SUCCESS)
         {
             cpp2dERROR("GLFW failed to create window surface!");
             return nullptr;
         }
 
         Utility::ArgumentList arguments;
-        arguments.set(
-            (VkInstance)_handle,
-            (VkSurfaceKHR)surface
-        );
+        arguments.set(instance, surface);
         
-        _objects.push(
+        pushObject(
             GDIObjectInstance {
                 .type      = GDIObject::Surface,
                 .handle    = surface,
@@ -355,7 +354,7 @@ namespace cpp2d::Graphics
 
         _suitable_device_index = -1;
         for (U32 i = 0; i < _physical_devices.device_count; i++)
-            if (is_suitable_device((VkPhysicalDevice)_physical_devices.handles[i], surface))
+            if (is_suitable_device(static_cast<VkPhysicalDevice>(_physical_devices.handles[i]), surface))
             {
                 _suitable_device_index = i;
                 break;
@@ -376,7 +375,7 @@ namespace cpp2d::Graphics
             Utility::ArgumentList arguments;
             arguments.set((VkDevice)_device.handle);
 
-            _objects.push(
+            pushObject(
                 GDIObjectInstance {
                     .type      = GDIObject::Device,
                     .handle    = _device.handle,
@@ -385,7 +384,7 @@ namespace cpp2d::Graphics
             );
         }
 
-        return (SurfaceHandle)surface;
+        return static_cast<SurfaceHandle>(surface);
     }
 
 #else
@@ -423,8 +422,10 @@ namespace cpp2d::Graphics
         return _handle;
     }
 
-    ShaderHandle GDI::createShader(const U32* data, U32 count)
+    ShaderHandle GDI::createShader(const U32* data, U32 count, GDILifetime* lifetime)
     {
+        if (!lifetime) lifetime = this;
+
         assert(_device.handle);
 
         cpp2dINFO("Creating shader");
@@ -448,7 +449,7 @@ namespace cpp2d::Graphics
             shader
         );
 
-        _objects.push(GDIObjectInstance{
+        this->pushObject(GDIObjectInstance{
             .type = GDIObject::Shader,
             .handle = shader,
             .arguments = arguments
@@ -457,7 +458,7 @@ namespace cpp2d::Graphics
         return shader;
     }
 
-    GDIPipeline GDI::createPipeline(const ScopedData<Shader*>& shaders, const Surface* surface)
+    GDIPipeline GDI::createPipeline(const ScopedData<Shader*>& shaders, Surface* surface)
     {
         ScopedData<VkPipelineShaderStageCreateInfo> create_infos(shaders.size());
         for (U32 i = 0; i < create_infos.size(); i++)
@@ -602,7 +603,7 @@ namespace cpp2d::Graphics
                 pipeline_layout
             );
 
-            _objects.push(GDIObjectInstance {
+            surface->pushObject(GDIObjectInstance {
                 .type = GDIObject::PipelineLayout,
                 .handle = pipeline_layout,
                 .arguments = arguments
@@ -646,7 +647,7 @@ namespace cpp2d::Graphics
                 pipeline
             );
 
-            _objects.push(GDIObjectInstance {
+            surface->pushObject(GDIObjectInstance {
                 .type = GDIObject::GraphicsPipeline,
                 .handle = static_cast<void*>(pipeline),
                 .arguments = arguments
@@ -660,12 +661,12 @@ namespace cpp2d::Graphics
         };
     }
     
-    CommandPoolHandle GDI::createCommandPool(const Surface* surface, GDILifetime* lifetimeObject)
+    CommandPoolHandle GDI::createCommandPool(GDILifetime* lifetime)
     {
-        if (!lifetimeObject) lifetimeObject = this;
+        if (!lifetime) lifetime = this;
 
         const VkPhysicalDevice physical_device = static_cast<VkPhysicalDevice>(_physical_devices.handles[_device.physical_device_index]);
-        QueueFamilyIndices indices = findQueueFamilies(physical_device, static_cast<VkSurfaceKHR>(surface->getHandle()));
+        QueueFamilyIndices indices = findQueueFamilies(physical_device, VK_NULL_HANDLE);
 
         VkCommandPoolCreateInfo create_info {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -686,7 +687,7 @@ namespace cpp2d::Graphics
             Utility::ArgumentList arguments;
             arguments.set(device, command_pool);
 
-            lifetimeObject->pushObject(GDIObjectInstance {
+            lifetime->pushObject(GDIObjectInstance {
                 .type = GDIObject::CommandPool,
                 .handle = command_pool,
                 .arguments = arguments
@@ -708,13 +709,14 @@ namespace cpp2d::Graphics
 
         VkCommandBuffer command_buffer;
         const VkDevice device = static_cast<VkDevice>(_device.handle);
-        VkResult result = vkAllocateCommandBuffers(device, nullptr, &command_buffer);
+        VkResult result = vkAllocateCommandBuffers(device, &alloc_info, &command_buffer);
         if (result != VK_SUCCESS)
         {
             cpp2dERROR("Error allocating command buffers.");
             return nullptr;
         }
 
+        cpp2dINFO("Command buffer created successfully.");
         return static_cast<CommandBufferHandle>(command_buffer);
     }
 }

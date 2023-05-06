@@ -10,10 +10,15 @@ namespace cpp2d
         public Window,
         public Graphics::Surface
     {
+        Graphics::SurfaceHandle   _handle;
+        Graphics::SwapChainHandle _swapchain;
+
     public:
         DrawWindow(CU32& width, CU32& height, const char* title);
         ~DrawWindow();
 
         void display() const override;
+
+        Graphics::SurfaceHandle getSurfaceHandle() const;
     };
 }

@@ -14,30 +14,25 @@ namespace cpp2d
         glfwGetFramebufferSize((GLFWwindow*)window->getHandle(), &_width, &_height);
         setExtent({ (U32)_width, (U32)_height });
 
-        // Init surface with vulkan
-        setHandle(
-            Graphics::GDI::get().getSurfaceHandle(this)
-        );
+        _handle = Graphics::GDI::get().getSurfaceHandle(this);
 
-        setSwapChain(
-            Graphics::GDI::get().createSwapChain(this)
-        );
+        Graphics::SwapChainInfo info = Graphics::GDI::get().createSwapChain(this);
+        _swapchain = info.handle;
 
-        setRenderPass(
-            Graphics::GDI::get().createRenderPass(this)
-        );
-
-        createFramebuffers();
+        create({ (U32)_width, (U32)_height }, info);
+        std::free(info.images);
     }
 
     DrawWindow::~DrawWindow()
-    {
-        // Delete surface
-        Graphics::GDI::get().destroy();
-    }
+    {   }
 
     void DrawWindow::display() const
     {
         // swap buffers vulkan version
+    }
+
+    Graphics::SurfaceHandle DrawWindow::getSurfaceHandle() const
+    {
+        return _handle;
     }
 }

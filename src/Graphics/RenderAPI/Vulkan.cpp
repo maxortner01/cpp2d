@@ -117,9 +117,12 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surfa
         if (props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
             indices.graphics_index = i; 
         
-        VkBool32 present_support;
-        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present_support);
-        if (present_support) indices.present_index = i;
+        if (surface)
+        {
+            VkBool32 present_support;
+            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present_support);
+            if (present_support) indices.present_index = i;
+        }
     }
 
     return indices;

@@ -2,50 +2,53 @@
 
 #include "../Util.h"
 #include "Sizable.h"
+#include "GDILifetime.h"
 
 namespace cpp2d::Graphics
 {
-    // Currently this will only work for a window, not a frame buffer,
-    // Instead, a draw window should contain an array of surfaces, each representing a vkImage
-    // the swapchain thus becomes a drawwindow exclusive object that represents the list 
-    // of surfaces
+    class Surface;
 
-    // Actually no... since only one renderpass is needed for multiple objects, i think this set up
-    // is good. this way, a surface can contain as many images as you want to assign to a render pass
-    // instead of set swap chain, this should be create images... the swapchain should be created in the
-    // draw window constructor
+    // This is an object that represents a singular surface to be drawn on
+    // at a time. The frame has its own command pool and subjugated command buffers,
+    // it handles their creation and destruction
+    //
+    // When rendering occurs, the recording is done into the current frame in flight's command buffer
+    struct CPP2D_DLL Frame :
+        public Graphics::GDILifetime
+    {
+        GDIImage            image;
+        CommandPoolHandle   command_pool;
+        FramebufferHandle   framebuffer;
+        CommandBufferHandle command_buffers;
+
+        Frame(GDIImage _image, Surface* parent);
+    };
+
+    
     class CPP2D_DLL Surface :
         public Sizable,
+        public Graphics::GDILifetime,
         public Utility::NoCopy
     {
-        struct 
-        {
-            U32                count;
-            FormatHandle       format;
-            GDIImage*          images;
-            FramebufferHandle* framebuffers;
-        } _swapchain_images;
-
-        SurfaceHandle    _handle;
-        SwapChainHandle  _swapchain;
+        
+        U32              _frame_count;
+        Frame*           _frames;
         RenderPassHandle _render_pass;
-        CommandPoolHandle _command_pool;
-
-    protected:
-        void setHandle(SurfaceHandle handle);
-        void setSwapChain(SwapChainInfo info);
-        void setRenderPass(RenderPassHandle handle);
-        void createFramebuffers();
+        FormatHandle     _format;
 
     public:
         Surface(const Vec2u& extent);
         ~Surface();
 
+        void create(const Vec2u& extent, const SwapChainInfo& swapchain);
+        void create(const Vec2u& extent);
+
         void startRenderPass();
         void endRenderPass();
 
+        Frame& getFrame(const U32& index) const;
+
         FormatHandle  getFormat() const;
-        SurfaceHandle getHandle() const;
         RenderPassHandle getRenderPass() const;
 
         virtual void display() const = 0;

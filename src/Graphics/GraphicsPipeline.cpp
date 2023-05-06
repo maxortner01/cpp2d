@@ -4,7 +4,7 @@
 
 namespace cpp2d
 {
-    GraphicsPipeline::GraphicsPipeline(std::initializer_list<ShaderType> shaders, const Graphics::Surface& surface, const Graphics::AttributeFrame& attributes) :
+    GraphicsPipeline::GraphicsPipeline(std::initializer_list<ShaderType> shaders, Graphics::Surface& surface, const Graphics::AttributeFrame& attributes) :
         Utility::State<GraphicsPipelineState>(GraphicsPipelineState::NotBuilt),
         _attributes(attributes),
         _surface(&surface),

@@ -29,10 +29,10 @@ namespace Graphics
 
         ScopedData<Shader*> _shaders;
         Graphics::AttributeFrame _attributes;
-        const Graphics::Surface* _surface;
+        Graphics::Surface* _surface;
 
     public:
-        GraphicsPipeline(std::initializer_list<ShaderType> shaders, const Graphics::Surface& surface, const Graphics::AttributeFrame& attributes);
+        GraphicsPipeline(std::initializer_list<ShaderType> shaders, Graphics::Surface& surface, const Graphics::AttributeFrame& attributes);
         ~GraphicsPipeline();
 
         Shader& getShader(const ShaderType& type);
