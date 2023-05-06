@@ -57,7 +57,7 @@ namespace cpp2d::Graphics
 
         ShaderHandle createShader(const U32* data, U32 count, GDILifetime* lifetime = nullptr);
         GDIPipeline  createPipeline(const ScopedData<Shader*>& shaders, Surface* surface);
-        CommandPoolHandle   createCommandPool(GDILifetime* lifetime = nullptr);
+        CommandPool  createCommandPool(GDILifetime* lifetime = nullptr);
         CommandBufferHandle createCommandBuffer(const CommandPoolHandle& commandPool);
     };
 }

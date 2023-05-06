@@ -661,7 +661,7 @@ namespace cpp2d::Graphics
         };
     }
     
-    CommandPoolHandle GDI::createCommandPool(GDILifetime* lifetime)
+    CommandPool GDI::createCommandPool(GDILifetime* lifetime)
     {
         if (!lifetime) lifetime = this;
 
@@ -680,7 +680,7 @@ namespace cpp2d::Graphics
         if (result != VK_SUCCESS)
         {
             cpp2dERROR("Command pool creation failed.");
-            return nullptr;
+            return { nullptr, nullptr };
         }
         else
         {
@@ -695,7 +695,10 @@ namespace cpp2d::Graphics
         }
 
         cpp2dINFO("Command pool created successfully");
-        return static_cast<CommandPoolHandle>(command_pool);
+        return CommandPool {
+            .handle = static_cast<CommandPoolHandle>(command_pool),
+            .device = static_cast<GDIDeviceHandle>(device)
+        };
     }
 
     CommandBufferHandle GDI::createCommandBuffer(const CommandPoolHandle& commandPool)

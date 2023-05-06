@@ -17,7 +17,7 @@ namespace cpp2d::Graphics
         public Graphics::GDILifetime
     {
         GDIImage            image;
-        CommandPoolHandle   command_pool;
+        CommandPool         command_pool;
         FramebufferHandle   framebuffer;
         CommandBufferHandle command_buffers;
 
@@ -31,6 +31,8 @@ namespace cpp2d::Graphics
         public Utility::NoCopy
     {
         
+        U32 _current_frame;
+
         U32              _frame_count;
         Frame*           _frames;
         RenderPassHandle _render_pass;
@@ -43,7 +45,7 @@ namespace cpp2d::Graphics
         void create(const Vec2u& extent, const SwapChainInfo& swapchain);
         void create(const Vec2u& extent);
 
-        void startRenderPass();
+        void startRenderPass(const U32& frameIndex = 0);
         void endRenderPass();
 
         Frame& getFrame(const U32& index) const;

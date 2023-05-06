@@ -38,6 +38,11 @@ typedef const R64 CR64;
 
 namespace cpp2d::Graphics
 {
+    typedef void* GDIHandle;
+    typedef void* GDIDebugHandle;
+    typedef void* GDIPhysicalDevice;
+    typedef void* GDIDeviceHandle;
+
     typedef U32   FormatHandle;
     typedef void* ImageHandle;
     typedef void* ImageViewHandle;
@@ -50,6 +55,12 @@ namespace cpp2d::Graphics
     typedef void* FramebufferHandle;
     typedef void* CommandPoolHandle;
     typedef void* CommandBufferHandle;
+
+    struct CommandPool
+    {
+        CommandBufferHandle handle;
+        GDIDeviceHandle device;
+    };
 
     struct GDIPipeline
     {
@@ -72,11 +83,6 @@ namespace cpp2d::Graphics
         FormatHandle format;
     };
 
-    typedef void* GDIHandle;
-    typedef void* GDIDebugHandle;
-    typedef void* GDIPhysicalDevice;
-
-    typedef void* GDIDeviceHandle;
     struct GDILogicDevice
     {
         GDIDeviceHandle handle;
