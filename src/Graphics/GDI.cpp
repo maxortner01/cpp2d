@@ -230,6 +230,7 @@ namespace cpp2d::Graphics
         U32 image_count = capabilities.minImageCount + 1;
         if (image_count > capabilities.maxImageCount) image_count = capabilities.maxImageCount;
 
+        const bool vsync = true;
         VkSwapchainCreateInfoKHR create_info {
             .sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
             .surface          = _surface,
@@ -241,7 +242,7 @@ namespace cpp2d::Graphics
             .imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             .preTransform     = capabilities.currentTransform,
             .compositeAlpha   = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-            .presentMode      = present_mode,
+            .presentMode      = (vsync?present_mode:VK_PRESENT_MODE_IMMEDIATE_KHR),
             .clipped          = VK_TRUE,
             .oldSwapchain     = VK_NULL_HANDLE
         };

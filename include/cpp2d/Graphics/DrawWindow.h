@@ -19,8 +19,8 @@ namespace cpp2d
 
         void display() const override;
 
-        Graphics::CommandBufferHandle beginFrame();
-        void endFrame(const Graphics::CommandBufferHandle& commandBuffer);
+        Graphics::FrameData beginFrame();
+        void endFrame(const Graphics::FrameData& frameData);
 
         Graphics::SurfaceHandle getSurfaceHandle() const;
     };

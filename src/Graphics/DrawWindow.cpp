@@ -35,7 +35,7 @@ namespace cpp2d
         // swap buffers vulkan version
     }
 
-    Graphics::CommandBufferHandle DrawWindow::beginFrame() 
+    Graphics::FrameData DrawWindow::beginFrame() 
     {
         const Graphics::Frame& frame = getFrame();
         frame.waitUntilReady();
@@ -46,7 +46,7 @@ namespace cpp2d
         return startRenderPass();
     }
 
-    void DrawWindow::endFrame(const Graphics::CommandBufferHandle& commandBuffer)
+    void DrawWindow::endFrame(const Graphics::FrameData& commandBuffer)
     {
         endRenderPass(commandBuffer);
 

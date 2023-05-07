@@ -27,6 +27,8 @@ namespace cpp2d
 
         bool isOpen() const;
 
+        void setTitle(const char* title) const;
+
         void close();
         void pollEvents() const;
 

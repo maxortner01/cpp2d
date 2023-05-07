@@ -61,6 +61,11 @@ namespace cpp2d
         return (glfwWindowShouldClose((GLFWwindow*)_handle) != GLFW_TRUE);
     }
 
+    void Window::setTitle(const char* title) const
+    {
+        glfwSetWindowTitle((GLFWwindow*)_handle, title);
+    }
+
     void Window::close()
     {
         assert(_handle);

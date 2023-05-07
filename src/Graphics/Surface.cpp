@@ -88,7 +88,7 @@ namespace cpp2d::Graphics
         //assert(!_frames);
     }
 
-    CommandBufferHandle Surface::startRenderPass()
+    FrameData Surface::startRenderPass()
     {
 #   ifdef GDI_VULKAN
         Frame&   frame  = getFrame();
@@ -109,7 +109,7 @@ namespace cpp2d::Graphics
         if (result != VK_SUCCESS)
         {
             cpp2dERROR("Error beginning command buffer (%i).", result);
-            return nullptr;
+            return FrameData{ 0 };
         }
         frame.command_buffers.active = true;
 
@@ -144,15 +144,17 @@ namespace cpp2d::Graphics
         vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 #   endif
 
-        return frame.command_buffers.handle;
+        return FrameData { 
+            .command_buffer = frame.command_buffers.handle
+        };
     }
 
-    void Surface::endRenderPass(const CommandBufferHandle& commandBuffer)
+    void Surface::endRenderPass(const FrameData& frameData)
     {
 #   ifdef GDI_VULKAN
         const U32 index = 0;
         Frame& frame = getFrame();
-        VkCommandBuffer command_buffer = static_cast<VkCommandBuffer>(commandBuffer);
+        VkCommandBuffer command_buffer = static_cast<VkCommandBuffer>(frameData.command_buffer);
 
         vkCmdEndRenderPass(command_buffer);
         VkResult result = vkEndCommandBuffer(command_buffer);

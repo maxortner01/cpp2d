@@ -30,6 +30,11 @@ namespace cpp2d::Graphics
         void waitUntilReady() const;
     };
 
+    struct FrameData
+    {
+        CommandBufferHandle command_buffer;
+    };
+
     /**
      * @brief Encapsulates a surface to render onto.
      * 
@@ -72,7 +77,7 @@ namespace cpp2d::Graphics
          * 
          * Begins render pass on the current frame. *Does not* attempt to wait on fences.
          */
-        CommandBufferHandle startRenderPass();
+        FrameData startRenderPass();
 
         /**
          * @brief Ends the render pass.
@@ -80,7 +85,7 @@ namespace cpp2d::Graphics
          * Ends render pass on the current frame and submits the command buffer of the current frame
          * to the graphics queue.
          */
-        void endRenderPass(const CommandBufferHandle& commandBuffer);
+        void endRenderPass(const FrameData& frameData);
 
         Frame& getFrame() const;
         
