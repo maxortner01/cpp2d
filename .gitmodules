@@ -4,3 +4,6 @@
 [submodule "extern/loguru"]
 	path = extern/loguru
 	url = https://github.com/emilk/loguru
+[submodule "extern/VulkanMemoryAllocator"]
+	path = extern/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator

@@ -8,7 +8,6 @@ set(DEFINITIONS GDI_VULKAN CPP2D_GRAPHICS_BUILD)
 
 # Here's our cross platform dependencies, specifically Vulkan and glfw
 find_package(Vulkan REQUIRED)
-find_library(GLFW3 glfw3 HINTS ${CMAKE_BINARY_DIR}/extern/glfw/src)
 
 # set to shaderc_combined if in Release, otherwise shaderc_combinedd
 set(SHADERC_LIB_NAME shaderc_combined)
@@ -16,7 +15,7 @@ set(SHADERC_LIB_NAME shaderc_combined)
 cmake_path(GET Vulkan_LIBRARIES PARENT_PATH Vulkan_LIBRARY_DIR)
 find_library(SHADERC ${SHADERC_LIB_NAME} HINTS ${Vulkan_LIBRARY_DIR})
 
-set(LIBS ${Vulkan_LIBRARIES} ${GLFW3})
+set(LIBS ${Vulkan_LIBRARIES})
 if (${SHADERC} MATCHES "SHADERC-NOTFOUND")
     message("Shaderc not being used")
 else()
@@ -35,6 +34,7 @@ endif()
 set(INCLUDES 
     ${CMAKE_SOURCE_DIR}/include/
     ${CMAKE_SOURCE_DIR}/extern/glfw/include
+    ${CMAKE_SOURCE_DIR}/extern/VulkanMemoryAllocator/include
     ${Vulkan_INCLUDE_DIR}
 )
 
@@ -49,4 +49,4 @@ add_compile_definitions(${DEFINITIONS})
 
 add_library(cpp2d-graphics SHARED ../Graphics.cpp)
 
-target_link_libraries(cpp2d-graphics ${LIBS})
+target_link_libraries(cpp2d-graphics glfw ${LIBS})

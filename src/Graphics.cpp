@@ -16,6 +16,9 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#define VMA_IMPLEMENTATION
+#include <vk_mem_alloc.h>
+
 #include "./Graphics/Window.cpp"
 #include "./Graphics/DrawWindow.cpp"
 #include "./Graphics/GDI.cpp"
