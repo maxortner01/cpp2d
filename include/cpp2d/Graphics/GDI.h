@@ -24,6 +24,12 @@ namespace cpp2d::Graphics
         DeviceCreationFailed
     };
 
+    struct QueueIndices
+    {
+        U32 graphics;
+        U32 present;
+    };
+
     class CPP2D_DLL GDI :
         public Utility::Singleton<GDI>,
         public Utility::State<GDIState>,
@@ -36,6 +42,10 @@ namespace cpp2d::Graphics
             GDIPhysicalDevice* handles;
         } _physical_devices;
 
+        // Currently, we only keep one logic device,
+        // but in the future if we want more, we can keep
+        // a map that lets us take device handles to their 
+        // logid device struct
         GDIHandle      _handle;
         GDIDebugHandle _debug;
         GDILogicDevice _device;
@@ -58,6 +68,12 @@ namespace cpp2d::Graphics
         SwapChainInfo     createSwapChain(const DrawWindow* window);
         SurfaceHandle     getSurfaceHandle(const Window* window);
         GDIHandle         getHandle() const;
+
+        GDILogicDevice    getLogicDevice(const DeviceHandle& handle) const;
+        GDIPhysicalDevice getSuitablePhysicalDevice() const;
+        GDIPhysicalDevice getPhysicalDevice(CU32& index) const;
+        QueueIndices      getQueueIndices(const GDIPhysicalDevice& physicalDevice) const;
+        QueueIndices      getQueueIndices(const GDIPhysicalDevice& physicalDevice, const DrawWindow& window) const;
 
         U32 getNextImage(const SwapChainHandle& swapchain, const Frame& frame);
 

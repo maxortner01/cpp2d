@@ -35,39 +35,34 @@ namespace cpp2d
         // swap buffers vulkan version
     }
 
-    void DrawWindow::startRenderPass() 
+    Graphics::CommandBufferHandle DrawWindow::beginFrame() 
     {
-#   ifdef GDI_VULKAN
-        Surface* surface = static_cast<Surface*>(this);
-        VkDevice device = static_cast<VkDevice>(getFrame().command_pool.device); 
-        VkFence  fence  = static_cast<VkFence>(getFrame().sync_objects.in_flight);
-        vkWaitForFences(device, 1, &fence, VK_TRUE, 100000000000);
-        vkResetFences(device, 1, &fence);
+        const Graphics::Frame& frame = getFrame();
+        frame.waitUntilReady();
 
-        U32 image_index = Graphics::GDI::get().getNextImage(_swapchain, surface->getFrame());
+        U32 image_index = Graphics::GDI::get().getNextImage(_swapchain, getFrame());
         setCurrentImageIndex(image_index);
-#   endif
 
-        surface->_startRenderPass();
+        return startRenderPass();
     }
 
-    void DrawWindow::endRenderPass()
+    void DrawWindow::endFrame(const Graphics::CommandBufferHandle& commandBuffer)
     {
-        Surface* surface = static_cast<Surface*>(this);
-        surface->_endRenderPass();
+        endRenderPass(commandBuffer);
 
+        const Graphics::Frame& frame = getFrame();
 #   ifdef GDI_VULKAN
-        VkDevice device = static_cast<VkDevice>(getFrame().command_pool.device); 
+        VkDevice device = static_cast<VkDevice>(frame.command_pool.device); 
 
         VkSemaphore wait_semaphore[] = {
-            static_cast<VkSemaphore>(surface->getFrame().sync_objects.render_finished)
+            static_cast<VkSemaphore>(frame.sync_objects.render_finished)
         };
 
         VkSwapchainKHR swapchains[] {
             static_cast<VkSwapchainKHR>(_swapchain)
         };
 
-        U32 image_index = surface->getCurrentImageIndex();
+        U32 image_index = getCurrentImageIndex();
         VkPresentInfoKHR present_info {
             .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
             .waitSemaphoreCount = 1,
@@ -79,7 +74,6 @@ namespace cpp2d
         };
 
         U32 present_index = Graphics::GDI::get().getPresentIndex(this);
-        const Graphics::Frame& frame = getFrame();
 
         VkQueue queue;
         Graphics::GDILogicDevice logicDevice = Graphics::GDI::get().getLogicDevice();

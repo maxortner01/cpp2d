@@ -283,17 +283,15 @@ GDILogicDevice create_logic_device(GDIHandle handle, VkSurfaceKHR surface, VkPhy
         cpp2dFATAL("Failed to create device!");
         return GDILogicDevice{
             .handle = nullptr,
-            .physical_device_index = -1,
-            .graphics_queue = 0
+            .physical_device_index = -1
         };
     }
 
 
     cpp2dINFO("Successfully created logic device.");
     return GDILogicDevice {
-        .handle = (GDIDeviceHandle)_device,
-        .physical_device_index = suitableDeviceIndex,
-        .graphics_queue = indices.graphics_index.value()
+        .handle = static_cast<DeviceHandle>(_device),
+        .physical_device_index = suitableDeviceIndex
     };
 }
 

@@ -39,5 +39,7 @@ namespace Graphics
         void create();    
 
         bool shadersComplete() const;
+
+        void bind(const Graphics::CommandBufferHandle& commandBuffer);
     };
 }

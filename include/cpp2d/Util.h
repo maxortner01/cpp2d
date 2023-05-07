@@ -41,8 +41,8 @@ namespace cpp2d::Graphics
     typedef void* GDIHandle;
     typedef void* GDIDebugHandle;
     typedef void* GDIPhysicalDevice;
-    typedef void* GDIDeviceHandle;
-
+    
+    typedef void* DeviceHandle;
     typedef U32   FormatHandle;
     typedef void* ImageHandle;
     typedef void* ImageViewHandle;
@@ -58,10 +58,16 @@ namespace cpp2d::Graphics
     typedef void* SemaphoreHandle;
     typedef void* FenceHandle;
 
+    struct CommandBuffer
+    {
+        CommandBufferHandle handle;
+        bool active;
+    };
+
     struct CommandPool
     {
         CommandBufferHandle handle;
-        GDIDeviceHandle device;
+        DeviceHandle device;
     };
 
     struct GDIPipeline
@@ -87,8 +93,7 @@ namespace cpp2d::Graphics
 
     struct GDILogicDevice
     {
-        GDIDeviceHandle handle;
+        DeviceHandle handle;
         I32 physical_device_index;
-        U32 graphics_queue;
     };
 }

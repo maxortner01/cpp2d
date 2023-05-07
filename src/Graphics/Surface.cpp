@@ -9,11 +9,25 @@ namespace cpp2d::Graphics
     Frame::Frame(Surface* parent)
     {
         command_pool = GDI::get().createCommandPool(this);
-        command_buffers = GDI::get().createCommandBuffer(command_pool.handle);
+        command_buffers.handle = GDI::get().createCommandBuffer(command_pool.handle);
+        command_buffers.active = false;
 
         sync_objects.image_avaliable = GDI::get().createSemaphore(this);
         sync_objects.render_finished = GDI::get().createSemaphore(this);
         sync_objects.in_flight = GDI::get().createFence(this);
+    }
+
+    Frame::~Frame()
+    {
+        waitUntilReady();
+    }
+
+    void Frame::waitUntilReady() const
+    {
+        VkDevice device = static_cast<VkDevice>(command_pool.device); 
+        VkFence  fence  = static_cast<VkFence>(sync_objects.in_flight);
+        vkWaitForFences(device, 1, &fence, VK_TRUE, 100000000000);
+        vkResetFences(device, 1, &fence);
     }
 
     Surface::Surface(const Vec2u& extent) :
@@ -49,7 +63,7 @@ namespace cpp2d::Graphics
 
         assert(!_frames);
 
-        _framebuffers = (_Framebuffer*)std::malloc(sizeof(_Framebuffer) * swapchain.image_count);
+        _framebuffers = (FrameImage*)std::malloc(sizeof(FrameImage) * swapchain.image_count);
 
         _format = swapchain.format;
         _render_pass = Graphics::GDI::get().createRenderPass(this);
@@ -74,32 +88,32 @@ namespace cpp2d::Graphics
         //assert(!_frames);
     }
 
-    void Surface::_startRenderPass()
+    CommandBufferHandle Surface::startRenderPass()
     {
 #   ifdef GDI_VULKAN
-        const Frame& frame  = getFrame();
-        VkDevice     device = static_cast<VkDevice>(frame.command_pool.device); 
+        Frame&   frame  = getFrame();
+        VkDevice device = static_cast<VkDevice>(frame.command_pool.device); 
+
+        VkCommandPool command_pool = static_cast<VkCommandPool>(frame.command_pool.handle);
+        vkResetCommandPool(device, command_pool, 0);
+        
         VkCommandBufferBeginInfo begin_info {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
             .flags = 0,
             .pInheritanceInfo = nullptr
         };
 
-        VkCommandPool command_pool = static_cast<VkCommandPool>(frame.command_pool.handle);
-        vkResetCommandPool(device, command_pool, 0);
-
-        VkCommandBuffer command_buffer = static_cast<VkCommandBuffer>(frame.command_buffers);
-
+        assert(!frame.command_buffers.active);
+        VkCommandBuffer command_buffer = static_cast<VkCommandBuffer>(frame.command_buffers.handle);
         VkResult result = vkBeginCommandBuffer(command_buffer, &begin_info);
         if (result != VK_SUCCESS)
         {
             cpp2dERROR("Error beginning command buffer (%i).", result);
-            return;
+            return nullptr;
         }
+        frame.command_buffers.active = true;
 
-        float x = 0.5 * (sin(_current_frame * 0.01) + 1.f);
-        float y = 0.5 * (cos(_current_frame * 0.01) + 1.f);
-        VkClearValue clearColor = {{{x, y, 0.0f, 1.0f}}};
+        VkClearValue clearColor = {{{0.f, 0.f, 0.0f, 1.0f}}};
         VkRenderPassBeginInfo render_pass_info {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
             .renderPass = static_cast<VkRenderPass>(getRenderPass()),
@@ -111,15 +125,34 @@ namespace cpp2d::Graphics
         };
 
         vkCmdBeginRenderPass(command_buffer, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+
+        VkViewport viewport {
+            .x = 0,
+            .y = 0,
+            .width = static_cast<R32>(getExtent().x),
+            .height = static_cast<R32>(getExtent().y),
+            .minDepth = 0,
+            .maxDepth = 1
+        };
+
+        VkRect2D scissor {
+            .offset = { 0, 0 },
+            .extent = { getExtent().x, getExtent().y }
+        };
+
+        vkCmdSetViewport(command_buffer, 0, 1, &viewport);
+        vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 #   endif
+
+        return frame.command_buffers.handle;
     }
 
-    void Surface::_endRenderPass()
+    void Surface::endRenderPass(const CommandBufferHandle& commandBuffer)
     {
 #   ifdef GDI_VULKAN
         const U32 index = 0;
-        const Frame& frame = getFrame();
-        VkCommandBuffer command_buffer = static_cast<VkCommandBuffer>(frame.command_buffers);
+        Frame& frame = getFrame();
+        VkCommandBuffer command_buffer = static_cast<VkCommandBuffer>(commandBuffer);
 
         vkCmdEndRenderPass(command_buffer);
         VkResult result = vkEndCommandBuffer(command_buffer);
@@ -128,6 +161,7 @@ namespace cpp2d::Graphics
             cpp2dERROR("Error stopping command buffer recording (%i).", result);
             return;
         }
+        frame.command_buffers.active = false;
 
         VkSemaphore wait_semaphores[] = {
             static_cast<VkSemaphore>(frame.sync_objects.image_avaliable)
@@ -155,8 +189,10 @@ namespace cpp2d::Graphics
         VkQueue queue;
         const VkFence  fence  = static_cast<VkFence>(frame.sync_objects.in_flight);
         const VkDevice device = static_cast<VkDevice>(frame.command_pool.device);
-        GDILogicDevice logicDevice = Graphics::GDI::get().getLogicDevice();
-        vkGetDeviceQueue(device, logicDevice.graphics_queue, 0, &queue);
+        const GDILogicDevice logic_device   = GDI::get().getLogicDevice(frame.command_pool.device);
+        const GDIPhysicalDevice phys_device = GDI::get().getPhysicalDevice(logic_device.physical_device_index);
+        const QueueIndices   queue_indices  = GDI::get().getQueueIndices(phys_device);
+        vkGetDeviceQueue(device, queue_indices.graphics, 0, &queue);
 
         result = vkQueueSubmit(
             queue,

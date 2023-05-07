@@ -1,5 +1,9 @@
 #include <cpp2d/Graphics.h>
 
+#ifdef GDI_VULKAN
+#   include <vulkan/vulkan.h>
+#endif
+
 #define SHADER_TYPE_NOT_IN_PIPELINE false
 
 namespace cpp2d
@@ -49,6 +53,20 @@ namespace cpp2d
                 return false;
 
         return true;
+    }
+
+    void GraphicsPipeline::bind(const Graphics::CommandBufferHandle& commandBuffer)
+    {
+#   ifdef GDI_VULKAN
+        VkCommandBuffer command_buffer = static_cast<VkCommandBuffer>(commandBuffer);
+
+        vkCmdBindPipeline(
+            command_buffer,
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            static_cast<VkPipeline>(_pipeline.handle)
+        );
+        vkCmdDraw(command_buffer, 3, 1, 0, 0);
+#   endif
     }
 }
 

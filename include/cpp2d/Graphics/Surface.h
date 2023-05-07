@@ -16,8 +16,8 @@ namespace cpp2d::Graphics
     struct CPP2D_DLL Frame :
         public Graphics::GDILifetime
     {
-        CommandPool         command_pool;
-        CommandBufferHandle command_buffers;
+        CommandPool   command_pool;
+        CommandBuffer command_buffers;
         struct {
             SemaphoreHandle image_avaliable;
             SemaphoreHandle render_finished;
@@ -25,15 +25,26 @@ namespace cpp2d::Graphics
         } sync_objects;
 
         Frame(Surface* parent);
+        ~Frame();
+
+        void waitUntilReady() const;
     };
 
-    
+    /**
+     * @brief Encapsulates a surface to render onto.
+     * 
+     * This object is the general surface upon which you can render objects. There is only ever
+     * exposed *one* framebuffer at an instant, whose index can be retreived/set with get/setCurrentFrameindex().
+     * 
+     * In order to begin rendering, use the startRenderPass method. Then call your render methods and pass to them
+     * the surface. Once rendering is finished, call endRenderPass.
+     */
     class CPP2D_DLL Surface :
         public Sizable,
         public Graphics::GDILifetime,
         public Utility::NoCopy
     {
-        struct _Framebuffer
+        struct FrameImage
         {
             GDIImage          image;
             FramebufferHandle framebuffer;
@@ -45,12 +56,9 @@ namespace cpp2d::Graphics
 
         U32              _image_count;
         Frame*           _frames;
-        _Framebuffer*    _framebuffers;
+        FrameImage*      _framebuffers;
         RenderPassHandle _render_pass;
         FormatHandle     _format;
-    
-    protected:
-        void setCurrentImageIndex(const U32& index);
 
     public:
         Surface(const Vec2u& extent);
@@ -59,13 +67,25 @@ namespace cpp2d::Graphics
         void create(const Vec2u& extent, const SwapChainInfo& swapchain);
         void create(const Vec2u& extent);
 
-        void _startRenderPass();
-        void _endRenderPass();
+        /**
+         * @brief Begins the render pass.
+         * 
+         * Begins render pass on the current frame. *Does not* attempt to wait on fences.
+         */
+        CommandBufferHandle startRenderPass();
+
+        /**
+         * @brief Ends the render pass.
+         * 
+         * Ends render pass on the current frame and submits the command buffer of the current frame
+         * to the graphics queue.
+         */
+        void endRenderPass(const CommandBufferHandle& commandBuffer);
 
         Frame& getFrame() const;
-
+        
+        void setCurrentImageIndex(const U32& index);
         U32 getCurrentImageIndex() const;
-
 
         FormatHandle  getFormat() const;
         RenderPassHandle getRenderPass() const;

@@ -75,7 +75,7 @@ namespace cpp2d::Graphics
     U32 GDI::getPresentIndex(DrawWindow* surface)
     {
         QueueFamilyIndices indices = findQueueFamilies(
-            static_cast<VkPhysicalDevice>(_physical_devices.handles[_suitable_device_index]), 
+            static_cast<VkPhysicalDevice>(getSuitablePhysicalDevice()), 
             static_cast<VkSurfaceKHR>(surface->getSurfaceHandle())
         );
 
@@ -208,7 +208,7 @@ namespace cpp2d::Graphics
         cpp2dINFO("Creating swapchain for surface.");
 
         const VkSurfaceKHR     _surface = static_cast<VkSurfaceKHR>(surface->getSurfaceHandle());
-        const VkPhysicalDevice _suitable_device = (VkPhysicalDevice)_physical_devices.handles[_suitable_device_index];
+        const VkPhysicalDevice _suitable_device = static_cast<VkPhysicalDevice>(getSuitablePhysicalDevice());
 
         VkSurfaceCapabilitiesKHR capabilities;
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_suitable_device, _surface, &capabilities);
@@ -380,7 +380,7 @@ namespace cpp2d::Graphics
 
         _suitable_device_index = -1;
         for (U32 i = 0; i < _physical_devices.device_count; i++)
-            if (is_suitable_device(static_cast<VkPhysicalDevice>(_physical_devices.handles[i]), surface))
+            if (is_suitable_device(static_cast<VkPhysicalDevice>(getPhysicalDevice(i)), surface))
             {
                 _suitable_device_index = i;
                 break;
@@ -413,39 +413,52 @@ namespace cpp2d::Graphics
         return static_cast<SurfaceHandle>(surface);
     }
 
-#else
-    // OpenGL init and cleaup functions
-    void GDI::_init()
-    {   }
-
-    void GDI::_delete()
-    {   }
-
-    SurfaceHandle GDI::getSurfaceHandle() const
-    { return nullptr; }
-#endif
-
-    GDI::GDI() :
-        Utility::State<GDIState>(GDIState::NotInitialized)
-    {
-        // Init by default?
-        _init();
-    }
-
-    GDI::~GDI()
-    {
-        _delete();
-
-        if (_physical_devices.handles)
-        {
-            std::free(_physical_devices.handles);
-            _physical_devices.handles = nullptr;
-        }
-    }
-
     GDIHandle GDI::getHandle() const
     {
         return _handle;
+    }
+
+    GDILogicDevice GDI::getLogicDevice(const DeviceHandle& handle) const
+    {
+        assert(_device.handle == handle);
+        return _device;
+    }
+
+    GDIPhysicalDevice GDI::getSuitablePhysicalDevice() const
+    {
+        return _physical_devices.handles[_suitable_device_index];
+    }
+
+    GDIPhysicalDevice GDI::getPhysicalDevice(CU32& index) const
+    {
+        assert(index < _physical_devices.device_count);
+        return _physical_devices.handles[index];
+    }
+
+    QueueIndices GDI::getQueueIndices(const GDIPhysicalDevice& physicalDevice) const
+    {
+        QueueFamilyIndices indices = findQueueFamilies(
+            static_cast<VkPhysicalDevice>(physicalDevice),
+            nullptr
+        );
+
+        return QueueIndices{
+            .graphics = indices.graphics_index.value(),
+            .present = 0
+        };
+    }
+
+    QueueIndices GDI::getQueueIndices(const GDIPhysicalDevice& physicalDevice, const DrawWindow& window) const
+    {
+        QueueFamilyIndices indices = findQueueFamilies(
+            static_cast<VkPhysicalDevice>(physicalDevice),
+            static_cast<VkSurfaceKHR>(window.getSurfaceHandle())
+        );
+
+        return QueueIndices{
+            .graphics = indices.graphics_index.value(),
+            .present = indices.present_index.value()
+        };
     }
 
     U32 GDI::getNextImage(const SwapChainHandle& swapchain, const Frame& frame)
@@ -766,7 +779,7 @@ namespace cpp2d::Graphics
     {
         if (!lifetime) lifetime = this;
 
-        const VkPhysicalDevice physical_device = static_cast<VkPhysicalDevice>(_physical_devices.handles[_device.physical_device_index]);
+        const VkPhysicalDevice physical_device = static_cast<VkPhysicalDevice>(getPhysicalDevice(_device.physical_device_index));
         QueueFamilyIndices indices = findQueueFamilies(physical_device, VK_NULL_HANDLE);
 
         VkCommandPoolCreateInfo create_info {
@@ -798,7 +811,7 @@ namespace cpp2d::Graphics
         cpp2dINFO("Command pool created successfully");
         return CommandPool {
             .handle = static_cast<CommandPoolHandle>(command_pool),
-            .device = static_cast<GDIDeviceHandle>(device)
+            .device = static_cast<DeviceHandle>(device)
         };
     }
 
@@ -822,5 +835,35 @@ namespace cpp2d::Graphics
 
         cpp2dINFO("Command buffer created successfully.");
         return static_cast<CommandBufferHandle>(command_buffer);
+    }
+
+#else
+    // OpenGL init and cleaup functions
+    void GDI::_init()
+    {   }
+
+    void GDI::_delete()
+    {   }
+
+    SurfaceHandle GDI::getSurfaceHandle() const
+    { return nullptr; }
+#endif
+
+    GDI::GDI() :
+        Utility::State<GDIState>(GDIState::NotInitialized)
+    {
+        // Init by default?
+        _init();
+    }
+
+    GDI::~GDI()
+    {
+        _delete();
+
+        if (_physical_devices.handles)
+        {
+            std::free(_physical_devices.handles);
+            _physical_devices.handles = nullptr;
+        }
     }
 }
