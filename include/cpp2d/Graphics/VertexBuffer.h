@@ -6,7 +6,7 @@ namespace cpp2d::Graphics
 {
     class CPP2D_DLL VertexBuffer
     {
-        const DeviceHandle _device;
+        const GDILogicDevice _device;
 
         U32 _allocated_bytes;
         BufferHandle     _handle;
@@ -17,7 +17,7 @@ namespace cpp2d::Graphics
 
     public:
         VertexBuffer();
-        VertexBuffer(const DeviceHandle& device);
+        VertexBuffer(const GDILogicDevice& device);
         ~VertexBuffer();
 
         void setData(const void* data, CU32& byteSize);

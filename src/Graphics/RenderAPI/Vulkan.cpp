@@ -288,10 +288,13 @@ GDILogicDevice create_logic_device(GDIHandle handle, VkSurfaceKHR surface, VkPhy
     }
 
 
+
     cpp2dINFO("Successfully created logic device.");
     return GDILogicDevice {
         .handle = static_cast<DeviceHandle>(_device),
-        .physical_device_index = suitableDeviceIndex
+        .physical_device_index = suitableDeviceIndex,
+        .graphics_queue = indices.graphics_index.value(),
+        .present_queue = indices.present_index.value()
     };
 }
 

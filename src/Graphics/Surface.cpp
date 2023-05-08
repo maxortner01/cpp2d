@@ -195,8 +195,9 @@ namespace cpp2d::Graphics
         const VkDevice device = static_cast<VkDevice>(frame.command_pool.device);
         const GDILogicDevice logic_device   = GDI::get().getLogicDevice(frame.command_pool.device);
         const GDIPhysicalDevice phys_device = GDI::get().getPhysicalDevice(logic_device.physical_device_index);
-        const QueueIndices   queue_indices  = GDI::get().getQueueIndices(phys_device);
-        vkGetDeviceQueue(device, queue_indices.graphics, 0, &queue);
+        //const QueueIndices   queue_indices  = GDI::get().getQueueIndices(phys_device);
+        const U32 graphics_queue = GDI::get().getCurrentLogicDevice().graphics_queue;
+        vkGetDeviceQueue(device, graphics_queue, 0, &queue);
 
         result = vkQueueSubmit(
             queue,

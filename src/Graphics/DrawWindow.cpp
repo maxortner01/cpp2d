@@ -73,7 +73,7 @@ namespace cpp2d
             .pResults = nullptr
         };
 
-        U32 present_index = Graphics::GDI::get().getPresentIndex(this);
+        U32 present_index = Graphics::GDI::get().getCurrentLogicDevice().present_queue;
 
         VkQueue queue;
         Graphics::GDILogicDevice logicDevice = Graphics::GDI::get().getLogicDevice();

@@ -42,6 +42,7 @@ namespace cpp2d::Graphics
     typedef void* GDIDebugHandle;
     typedef void* GDIPhysicalDevice;
     
+    typedef void* QueueHandle;
     typedef void* AllocatorHandle;
     typedef void* BufferHandle;
     typedef void* AllocationHandle;
@@ -98,5 +99,7 @@ namespace cpp2d::Graphics
     {
         DeviceHandle handle;
         I32 physical_device_index;
+        U32 graphics_queue;
+        U32 present_queue;
     };
 }

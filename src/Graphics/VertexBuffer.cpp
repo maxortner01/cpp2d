@@ -5,10 +5,10 @@
 namespace cpp2d::Graphics
 {
     VertexBuffer::VertexBuffer() :
-        VertexBuffer(GDI::get().getCurrentLogicDevice().handle)
+        VertexBuffer(GDI::get().getCurrentLogicDevice())
     {   }
 
-    VertexBuffer::VertexBuffer(const DeviceHandle& device) :
+    VertexBuffer::VertexBuffer(const GDILogicDevice& device) :
         _device(device),
         _handle(nullptr),
         _allocation(nullptr),
@@ -27,7 +27,7 @@ namespace cpp2d::Graphics
     {
         if (_allocated_bytes != byteSize) allocate(byteSize);
 
-        auto allocator  = static_cast<VmaAllocator> (GDI::get().getAllocator(_device));
+        auto allocator  = static_cast<VmaAllocator> (GDI::get().getAllocator(_device.handle));
         auto allocation = static_cast<VmaAllocation>(_allocation);
 
         void* _data;
@@ -52,7 +52,7 @@ namespace cpp2d::Graphics
         VkBuffer handle;
         VmaAllocation allocation;
 
-        auto allocator = static_cast<VmaAllocator>(GDI::get().getAllocator(_device));
+        auto allocator = static_cast<VmaAllocator>(GDI::get().getAllocator(_device.handle));
         VkResult result = vmaCreateBuffer(
             allocator,
             &create_info,
@@ -76,7 +76,7 @@ namespace cpp2d::Graphics
     void VertexBuffer::free()
     {
         assert(_allocation);
-        VmaAllocator  allocator  = static_cast<VmaAllocator> (GDI::get().getAllocator(_device));
+        VmaAllocator  allocator  = static_cast<VmaAllocator> (GDI::get().getAllocator(_device.handle));
         VmaAllocation allocation = static_cast<VmaAllocation>(_allocation);
         VkBuffer      buffer     = static_cast<VkBuffer>(_handle);
         vmaDestroyBuffer(allocator, buffer, allocation);
