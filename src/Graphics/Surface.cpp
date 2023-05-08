@@ -118,8 +118,10 @@ namespace cpp2d::Graphics
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
             .renderPass = static_cast<VkRenderPass>(getRenderPass()),
             .framebuffer = static_cast<VkFramebuffer>(_framebuffers[_current_image_index].framebuffer),
-            .renderArea.offset = {0, 0},
-            .renderArea.extent = { getExtent().x, getExtent().y },
+            .renderArea = {
+                .offset = {0, 0},
+                .extent = { getExtent().x, getExtent().y }
+            },
             .clearValueCount = 1,
             .pClearValues = &clearColor
         };
@@ -181,11 +183,11 @@ namespace cpp2d::Graphics
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .waitSemaphoreCount = 1,
             .pWaitSemaphores = wait_semaphores,
-            .signalSemaphoreCount = 1,
-            .pSignalSemaphores = signal_semaphores,
             .pWaitDstStageMask = stage_flags,
             .commandBufferCount = 1,
-            .pCommandBuffers = &command_buffer
+            .pCommandBuffers = &command_buffer,
+            .signalSemaphoreCount = 1,
+            .pSignalSemaphores = signal_semaphores,
         };
 
         VkQueue queue;

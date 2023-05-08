@@ -6,7 +6,11 @@
 namespace cpp2d::Utility
 {
     typedef decltype(std::chrono::high_resolution_clock::now()) Timestamp;
+#ifdef __APPLE__
     typedef std::__1::chrono::duration<long long, std::__1::nano> Duration;
+#else
+    typedef std::chrono::duration<long long, std::nano> Duration;
+#endif
 
     class Timer;
 

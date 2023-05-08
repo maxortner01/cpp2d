@@ -4,7 +4,7 @@
 
 namespace cpp2d::Graphics
 {
-    class VertexBuffer
+    class CPP2D_DLL VertexBuffer
     {
         const DeviceHandle _device;
 

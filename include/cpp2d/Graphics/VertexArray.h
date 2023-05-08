@@ -7,8 +7,9 @@
 
 namespace cpp2d
 {
-    class VertexArray : 
-        public ScopedData<Graphics::VertexBuffer>
+    class CPP2D_DLL VertexArray : 
+        public ScopedData<Graphics::VertexBuffer>,
+        public Utility::NoCopy
     {
         U32 _vertex_count;
 

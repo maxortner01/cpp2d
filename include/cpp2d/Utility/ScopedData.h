@@ -123,11 +123,12 @@ namespace cpp2d
     template<typename T>
     ScopedData<T>& ScopedData<T>::operator=(const ScopedData<T>& data)
     {
-        assert(_data);
-        std::free(_data);
-        _data = (T*)std::malloc(sizeof(T) * data._size);
-        std::memcpy(_data, data._data, sizeof(T) * data._size);
-        _size = data._size;
+        ScopedData<T> _data(data.size());
+
+        _data._data = (T*)std::malloc(sizeof(T) * data._size);
+        std::memcpy(_data._data, data._data, sizeof(T) * data._size);
+
+        return _data;
     }
 
     template<typename T>

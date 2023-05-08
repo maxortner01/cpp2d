@@ -22,7 +22,7 @@ namespace Graphics
         Failed
     };
 
-    class GraphicsPipeline :
+    class CPP2D_DLL GraphicsPipeline :
         public Utility::State<GraphicsPipelineState>,
         public Utility::NoCopy
     {

@@ -163,8 +163,8 @@ namespace cpp2d::Graphics
             .srcSubpass = VK_SUBPASS_EXTERNAL,
             .dstSubpass = 0,
             .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-            .srcAccessMask = 0,
             .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .srcAccessMask = 0,
             .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
         };
 
@@ -669,10 +669,10 @@ namespace cpp2d::Graphics
             if (format == VK_FORMAT_UNDEFINED) break;
 
             attributes[i] = VkVertexInputAttributeDescription {
-                .binding = frame.attributes[i].binding,
                 .location = frame.attributes[i].location,
-                .offset = frame.attributes[i].offset,
+                .binding = frame.attributes[i].binding,
                 .format = format,
+                .offset = frame.attributes[i].offset,
             };
         }
 
@@ -713,8 +713,8 @@ namespace cpp2d::Graphics
         VkPipelineViewportStateCreateInfo viewport_state {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
             .viewportCount = 1,
-            .scissorCount = 1,
             .pViewports = &viewport,
+            .scissorCount = 1,
             .pScissors = &scissor
         };
 
@@ -723,19 +723,19 @@ namespace cpp2d::Graphics
             .depthClampEnable = VK_FALSE,
             .rasterizerDiscardEnable = VK_FALSE,
             .polygonMode = VK_POLYGON_MODE_FILL,
-            .lineWidth = 1.f,
             .cullMode = VK_CULL_MODE_BACK_BIT,
             .frontFace = VK_FRONT_FACE_CLOCKWISE,
             .depthBiasEnable = VK_FALSE,
             .depthBiasConstantFactor = 0.0f,
             .depthBiasClamp = 0.0f,
-            .depthBiasSlopeFactor = 0.0f
+            .depthBiasSlopeFactor = 0.0f,
+            .lineWidth = 1.f,
         };
 
         VkPipelineMultisampleStateCreateInfo multisampling {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-            .sampleShadingEnable = VK_FALSE,
             .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+            .sampleShadingEnable = VK_FALSE,
             .minSampleShading = 1.0f,
             .pSampleMask = nullptr,
             .alphaToCoverageEnable = VK_FALSE,
@@ -743,14 +743,14 @@ namespace cpp2d::Graphics
         };
 
         VkPipelineColorBlendAttachmentState color_blend_attachment {
-            .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
             .blendEnable = VK_TRUE,
             .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
             .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
             .colorBlendOp = VK_BLEND_OP_ADD,
             .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
             .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-            .alphaBlendOp = VK_BLEND_OP_ADD
+            .alphaBlendOp = VK_BLEND_OP_ADD,
+            .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
         };
 
         VkPipelineColorBlendStateCreateInfo color_blending {

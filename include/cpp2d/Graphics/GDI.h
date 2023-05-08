@@ -14,8 +14,8 @@ namespace cpp2d
 
 namespace cpp2d::Graphics
 {
-    class Surface;
-    class Frame;
+    class  Surface;
+    struct Frame;
 
     enum class GDIState
     {
