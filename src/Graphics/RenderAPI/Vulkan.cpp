@@ -250,21 +250,37 @@ GDILogicDevice create_logic_device(GDIHandle handle, VkSurfaceKHR surface, VkPhy
 
     QueueFamilyIndices indices = findQueueFamilies(suitable_device, surface);
 
+    // In major need of some cleaning up
+
+    ScopedData<VkDeviceQueueCreateInfo> queueCreateInfos(
+        (indices.graphics_index == indices.present_index) ? 1 : 2
+    );
+
     float queuePriority = 1.0f;
-    VkDeviceQueueCreateInfo queueCreateInfo
-    {
+    queueCreateInfos[0] = VkDeviceQueueCreateInfo {
         .sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .queueFamilyIndex = indices.graphics_index.value(),
         .queueCount       = 1,
         .pQueuePriorities = &queuePriority,
     };
 
+    if (queueCreateInfos.size() > 1)
+    {
+        queueCreateInfos[1] = VkDeviceQueueCreateInfo {
+            .sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            .queueFamilyIndex = indices.present_index.value(),
+            .queueCount       = 1,
+            .pQueuePriorities = &queuePriority,
+        };
+    }
+
+
     VkPhysicalDeviceFeatures features{};
     VkDeviceCreateInfo createInfo
     {
         .sType                  = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .queueCreateInfoCount   = 1,
-        .pQueueCreateInfos      = &queueCreateInfo,
+        .queueCreateInfoCount   = queueCreateInfos.size(),
+        .pQueueCreateInfos      = queueCreateInfos.ptr(),
 #   ifdef DEBUG
         .enabledLayerCount = sizeof(validation_layers) / sizeof(const char*),
         .ppEnabledLayerNames = validation_layers,
@@ -286,8 +302,6 @@ GDILogicDevice create_logic_device(GDIHandle handle, VkSurfaceKHR surface, VkPhy
             .physical_device_index = -1
         };
     }
-
-
 
     cpp2dINFO("Successfully created logic device.");
     return GDILogicDevice {
