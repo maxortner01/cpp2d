@@ -56,7 +56,7 @@ namespace cpp2d
          * with a new dynamically allocated memory block that contains a copy of the
          * data in the other object.
          */
-        ScopedData<T>& operator=(const ScopedData<T>& data);
+        ScopedData<T>& operator=(const ScopedData<T>& data) = delete;
 
         /**
          * @brief Returns a pointer to the data block
@@ -120,6 +120,7 @@ namespace cpp2d
         _data = nullptr;
     }
 
+    /*
     template<typename T>
     ScopedData<T>& ScopedData<T>::operator=(const ScopedData<T>& data)
     {
@@ -129,7 +130,7 @@ namespace cpp2d
         std::memcpy(_data._data, data._data, sizeof(T) * data._size);
 
         return _data;
-    }
+    }*/
 
     template<typename T>
     T* ScopedData<T>::ptr() const
