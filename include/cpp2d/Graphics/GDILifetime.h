@@ -20,7 +20,8 @@ namespace cpp2d::Graphics
         Framebuffer,
         CommandPool,
         Semaphore,
-        Fence
+        Fence,
+        Allocator
     };
 
     struct GDIObjectInstance

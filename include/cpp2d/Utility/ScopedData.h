@@ -87,6 +87,8 @@ namespace cpp2d
          */
         T& operator[](CU32& index) const;
 
+        T& get(CU32& index) const;
+
     private:
         CU32 _size; 
         T* _data;   
@@ -96,9 +98,11 @@ namespace cpp2d
     // Implementation
     template<typename T>
     ScopedData<T>::ScopedData(CU32& count) :
-        _size(count)
+        _size(count),
+        _data(nullptr)
     {
-        _data = (T*)std::malloc(sizeof(T) * count);
+        if (count)
+            _data = (T*)std::malloc(sizeof(T) * count);
     }
 
     template<typename T>
@@ -136,6 +140,13 @@ namespace cpp2d
 
     template<typename T>
     T& ScopedData<T>::operator[](CU32& index) const
+    {
+        assert(index < _size);
+        return _data[index];
+    }
+
+    template<typename T>
+    T& ScopedData<T>::get(CU32& index) const
     {
         assert(index < _size);
         return _data[index];

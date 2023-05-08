@@ -4,6 +4,8 @@
 #   include <vulkan/vulkan.h>
 #endif
 
+#include <vk_mem_alloc.h>
+
 #include <limits>
 #include <optional>
 #include <string>
@@ -411,12 +413,47 @@ namespace cpp2d::Graphics
             );
         }
 
+        VmaAllocator allocator;
+        VmaAllocatorCreateInfo allocator_create {
+            .physicalDevice = static_cast<VkPhysicalDevice>(getSuitablePhysicalDevice()),
+            .device = static_cast<VkDevice>(_device.handle),
+            .instance = static_cast<VkInstance>(_handle)
+        };
+
+        VkResult result = vmaCreateAllocator(&allocator_create, &allocator);
+        if (result != VK_SUCCESS)
+            cpp2dERROR("Error creating VMA allocator.");
+        else
+        {
+            _allocator = static_cast<AllocatorHandle>(allocator);
+            
+            Utility::ArgumentList arguments;
+            arguments.set(allocator);
+
+            pushObject(GDIObjectInstance {
+                .type = GDIObject::Allocator,
+                .handle = allocator,
+                .arguments = arguments
+            });
+        }
+
         return static_cast<SurfaceHandle>(surface);
     }
 
     GDIHandle GDI::getHandle() const
     {
         return _handle;
+    }
+
+    AllocatorHandle GDI::getAllocator(const DeviceHandle& handle) const
+    {
+        assert(_device.handle == handle);
+        return _allocator;
+    }
+
+    GDILogicDevice GDI::getCurrentLogicDevice() const
+    {
+        return _device;
     }
 
     GDILogicDevice GDI::getLogicDevice(const DeviceHandle& handle) const
@@ -564,16 +601,17 @@ namespace cpp2d::Graphics
             shader
         );
 
+        /*
         this->pushObject(GDIObjectInstance{
             .type = GDIObject::Shader,
             .handle = shader,
             .arguments = arguments
-        });
+        });*/
 
         return shader;
     }
 
-    GDIPipeline GDI::createPipeline(const ScopedData<Shader*>& shaders, Surface* surface)
+    GDIPipeline GDI::createPipeline(const ScopedData<Shader*>& shaders, Surface* surface, const AttributeFrame& frame)
     {
         ScopedData<VkPipelineShaderStageCreateInfo> create_infos(shaders.size());
         for (U32 i = 0; i < create_infos.size(); i++)
@@ -603,12 +641,47 @@ namespace cpp2d::Graphics
             .pDynamicStates = dynamic_states
         };
 
+        ScopedData<VkVertexInputBindingDescription>   bindings(frame.bindings.size());
+        ScopedData<VkVertexInputAttributeDescription> attributes(frame.attributes.size());
+
+        // Convert the bindings data
+        for (U32 i = 0; i < bindings.size(); i++)
+        {
+            bindings[i] = VkVertexInputBindingDescription {
+                .binding = frame.bindings[i].index,
+                .stride  = frame.bindings[i].stride,
+                .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+            };
+        }
+
+        // Convert the attributes data
+        for (U32 i = 0; i < attributes.size(); i++)
+        {
+            VkFormat format = VK_FORMAT_UNDEFINED;
+            switch (frame.attributes[i].element_count)
+            {
+            case 1: format = VK_FORMAT_R32_SFLOAT;          break;
+            case 2: format = VK_FORMAT_R32G32_SFLOAT;       break;
+            case 3: format = VK_FORMAT_R32G32B32_SFLOAT;    break;
+            case 4: format = VK_FORMAT_R32G32B32A32_SFLOAT; break;
+            default: cpp2dERROR("Format not supported");    break;
+            }
+            if (format == VK_FORMAT_UNDEFINED) break;
+
+            attributes[i] = VkVertexInputAttributeDescription {
+                .binding = frame.attributes[i].binding,
+                .location = frame.attributes[i].location,
+                .offset = frame.attributes[i].offset,
+                .format = format,
+            };
+        }
+
         VkPipelineVertexInputStateCreateInfo vertex_create_info {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-            .vertexBindingDescriptionCount = 0,
-            .pVertexBindingDescriptions = nullptr,
-            .vertexAttributeDescriptionCount = 0,
-            .pVertexAttributeDescriptions = nullptr
+            .vertexBindingDescriptionCount = bindings.size(),
+            .pVertexBindingDescriptions = bindings.ptr(),
+            .vertexAttributeDescriptionCount = attributes.size(),
+            .pVertexAttributeDescriptions = attributes.ptr()
         };
 
         VkPipelineInputAssemblyStateCreateInfo input_assembly {
@@ -767,6 +840,12 @@ namespace cpp2d::Graphics
                 .handle = static_cast<void*>(pipeline),
                 .arguments = arguments
             });
+        }
+
+        for (U32 i = 0; i < shaders.size(); i++)
+        {
+            auto module = static_cast<VkShaderModule>(shaders[i]->getHandle());
+            vkDestroyShaderModule(device, module, nullptr);
         }
 
         cpp2dINFO("Graphics pipeline created successfully.");

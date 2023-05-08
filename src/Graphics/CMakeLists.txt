@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.8)
 
 project(cpp2d-graphics)
 
+if ( CMAKE_COMPILER_IS_GNUCC )
+    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+endif()
+if ( MSVC )
+    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W4")
+endif()
+
 # We will be compiling with c++20 and vulkan
 set(CMAKE_CXX_STANDARD 20)
 set(DEFINITIONS GDI_VULKAN CPP2D_GRAPHICS_BUILD)

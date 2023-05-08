@@ -8,6 +8,7 @@ namespace cpp2d
 {
 namespace Graphics
 {
+    struct FrameData;
     class Surface;
 }
 
@@ -40,6 +41,6 @@ namespace Graphics
 
         bool shadersComplete() const;
 
-        void bind(const Graphics::CommandBufferHandle& commandBuffer);
+        void bind(const Graphics::FrameData& frameData);
     };
 }

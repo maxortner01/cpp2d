@@ -2,6 +2,7 @@
 
 #ifdef GDI_VULKAN
 #   include <vulkan/vulkan.h>
+#   include <vk_mem_alloc.h>
 #endif
 
 namespace cpp2d::Graphics
@@ -158,6 +159,15 @@ namespace cpp2d::Graphics
                     VkFence  command_pool = object.arguments.get<VkFence>();
 
                     vkDestroyFence(device, command_pool, nullptr);
+                    break;
+                }
+
+            case GDIObject::Allocator:
+                {
+                    cpp2dINFO("Destroying allocator.");
+                    VmaAllocator allocator = object.arguments.get<VmaAllocator>();
+
+                    vmaDestroyAllocator(allocator);
                     break;
                 }
 

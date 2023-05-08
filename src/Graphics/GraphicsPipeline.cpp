@@ -38,7 +38,7 @@ namespace cpp2d
         assert(shadersComplete());
         assert(getState() == GraphicsPipelineState::NotBuilt);
 
-        _pipeline = Graphics::GDI::get().createPipeline(_shaders, _surface);
+        _pipeline = Graphics::GDI::get().createPipeline(_shaders, _surface, _attributes);
 
         if (_pipeline.layout)
             setState(GraphicsPipelineState::Success);
@@ -55,17 +55,16 @@ namespace cpp2d
         return true;
     }
 
-    void GraphicsPipeline::bind(const Graphics::CommandBufferHandle& commandBuffer)
+    void GraphicsPipeline::bind(const Graphics::FrameData& frameData)
     {
 #   ifdef GDI_VULKAN
-        VkCommandBuffer command_buffer = static_cast<VkCommandBuffer>(commandBuffer);
+        VkCommandBuffer command_buffer = static_cast<VkCommandBuffer>(frameData.command_buffer);
 
         vkCmdBindPipeline(
             command_buffer,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             static_cast<VkPipeline>(_pipeline.handle)
         );
-        vkCmdDraw(command_buffer, 3, 1, 0, 0);
 #   endif
     }
 }

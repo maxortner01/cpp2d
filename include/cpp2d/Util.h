@@ -42,6 +42,9 @@ namespace cpp2d::Graphics
     typedef void* GDIDebugHandle;
     typedef void* GDIPhysicalDevice;
     
+    typedef void* AllocatorHandle;
+    typedef void* BufferHandle;
+    typedef void* AllocationHandle;
     typedef void* DeviceHandle;
     typedef U32   FormatHandle;
     typedef void* ImageHandle;

@@ -26,3 +26,5 @@
 #include "./Graphics/Shader.cpp"
 #include "./Graphics/GraphicsPipeline.cpp"
 #include "./Graphics/GDILifetime.cpp"
+#include "./Graphics/VertexBuffer.cpp"
+#include "./Graphics/VertexArray.cpp"

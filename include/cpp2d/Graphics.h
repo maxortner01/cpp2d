@@ -7,3 +7,4 @@
 #include "./Graphics/Shader.h"
 #include "./Graphics/GraphicsPipeline.h"
 #include "./Graphics/GDILifetime.h"
+#include "./Graphics/VertexArray.h"

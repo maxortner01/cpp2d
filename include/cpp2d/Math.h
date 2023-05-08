@@ -8,7 +8,6 @@
 namespace cpp2d
 {
 #pragma region VEC2
-
     template<typename T>
     struct Vec2
     {
@@ -73,4 +72,11 @@ namespace cpp2d
     typedef Vec2<I32> Vec2i;
 
 #pragma endregion VEC2
+
+#pragma region COLOR
+    struct Color
+    {
+        R32 r, g, b, a;
+    };
+#pragma endregion COLOR
 }
