@@ -13,11 +13,14 @@
 #   define cpp2dINFO(...)
 #endif
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#ifdef GDI_VULKAN
+#   define GLFW_INCLUDE_VULKAN
 
-#define VMA_IMPLEMENTATION
-#include <vk_mem_alloc.h>
+#   define VMA_IMPLEMENTATION
+#   include <vk_mem_alloc.h>
+#endif
+
+#include <GLFW/glfw3.h>
 
 #include "./Graphics/Window.cpp"
 #include "./Graphics/DrawWindow.cpp"
@@ -26,5 +29,7 @@
 #include "./Graphics/Shader.cpp"
 #include "./Graphics/GraphicsPipeline.cpp"
 #include "./Graphics/GDILifetime.cpp"
-#include "./Graphics/VertexBuffer.cpp"
+//#include "./Graphics/VertexBuffer.cpp"
 #include "./Graphics/VertexArray.cpp"
+
+#include "./Graphics/Buffers.cpp"

@@ -2,13 +2,6 @@ cmake_minimum_required(VERSION 3.8)
 
 project(cpp2d-graphics)
 
-if ( CMAKE_COMPILER_IS_GNUCC )
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra")
-endif()
-if ( MSVC )
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W4")
-endif()
-
 # We will be compiling with c++20 and vulkan
 set(CMAKE_CXX_STANDARD 20)
 set(DEFINITIONS GDI_VULKAN CPP2D_GRAPHICS_BUILD)
@@ -17,7 +10,7 @@ set(DEFINITIONS GDI_VULKAN CPP2D_GRAPHICS_BUILD)
 find_package(Vulkan REQUIRED)
 
 # set to shaderc_combined if in Release, otherwise shaderc_combinedd
-set(SHADERC_LIB_NAME shaderc_combinedd)
+set(SHADERC_LIB_NAME shaderc_combined)
 # !--- Need to check if in debug mode
 cmake_path(GET Vulkan_LIBRARIES PARENT_PATH Vulkan_LIBRARY_DIR)
 find_library(SHADERC ${SHADERC_LIB_NAME} HINTS ${Vulkan_LIBRARY_DIR})

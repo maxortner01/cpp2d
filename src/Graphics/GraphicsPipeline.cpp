@@ -8,11 +8,21 @@
 
 namespace cpp2d
 {
-    GraphicsPipeline::GraphicsPipeline(std::initializer_list<ShaderType> shaders, Graphics::Surface& surface, const Graphics::AttributeFrame& attributes) :
+
+    void GraphicsPipeline::_set_push_constants(const Graphics::FrameData& frame_data, const void* data)
+    {
+        auto command_buffer = static_cast<VkCommandBuffer>(frame_data.command_buffer);
+        auto layout         = static_cast<VkPipelineLayout>(_pipeline.layout);
+
+        vkCmdPushConstants(command_buffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, _push_constants_size, data);
+    }
+
+    GraphicsPipeline::GraphicsPipeline(std::initializer_list<ShaderType> shaders, Graphics::Surface& surface, const Buffers::AttributeFrame& attributes) :
         Utility::State<GraphicsPipelineState>(GraphicsPipelineState::NotBuilt),
         _attributes(attributes),
         _surface(&surface),
-        _shaders(shaders.size())
+        _shaders(shaders.size()),
+        _push_constants_size(0)
     {
         for (U32 i = 0; i < _shaders.size(); i++)
             _shaders[i] = new Shader(*(shaders.begin() + i));
@@ -21,7 +31,7 @@ namespace cpp2d
     GraphicsPipeline::~GraphicsPipeline()
     {
         for (U32 i = 0; i < _shaders.size(); i++)
-            delete _shaders[i];        
+            delete _shaders[i];
     }
 
     Shader& GraphicsPipeline::getShader(const ShaderType& type)
@@ -38,7 +48,9 @@ namespace cpp2d
         assert(shadersComplete());
         assert(getState() == GraphicsPipelineState::NotBuilt);
 
-        _pipeline = Graphics::GDI::get().createPipeline(_shaders, _surface, _attributes);
+        _pipeline = Graphics::GDI::get().createPipeline(
+            _shaders, _surface, _attributes, _push_constants_size
+        );
 
         if (_pipeline.layout)
             setState(GraphicsPipelineState::Success);

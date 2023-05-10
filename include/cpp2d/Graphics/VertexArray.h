@@ -1,25 +1,32 @@
 #pragma once
 
 #include "../Utility.h"
-#include "VertexBuffer.h"
-#include "AttributeFrame.h"
 #include "Surface.h"
+#include "Buffers.h"
 
 namespace cpp2d
 {
+    enum class BufferType
+    {
+        Vertex,
+        Other,
+        Index
+    };
+
     class CPP2D_DLL VertexArray : 
-        public ScopedData<Graphics::VertexBuffer>,
+        public ScopedData<Buffers::SubBuffer>,
         public Utility::NoCopy
     {
-        U32 _vertex_count;
+        Buffers::Allocation* _allocation;
+        BufferType* const _types;
 
     public:
-        VertexArray(CU32& bufferCount);
+        VertexArray(const std::initializer_list<BufferType>& bufferTypes);
         ~VertexArray();
 
-        void setVertexCount(CU32& vertexCount);
+        void setBufferData(CU32& index, const void* data, CU32& bytes);
 
-        Graphics::AttributeFrame getAttributeFrame() const;
+        Buffers::AttributeFrame getAttributeFrame() const;
 
         void draw(const Graphics::FrameData& frameData);
     };

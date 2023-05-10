@@ -445,9 +445,9 @@ namespace cpp2d::Graphics
         return _handle;
     }
 
-    AllocatorHandle GDI::getAllocator(const DeviceHandle& handle) const
+    AllocatorHandle GDI::getAllocator() const
     {
-        assert(_device.handle == handle);
+        //assert(_device.handle == handle);
         return _allocator;
     }
 
@@ -611,7 +611,7 @@ namespace cpp2d::Graphics
         return shader;
     }
 
-    GDIPipeline GDI::createPipeline(const ScopedData<Shader*>& shaders, Surface* surface, const AttributeFrame& frame)
+    GDIPipeline GDI::createPipeline(const ScopedData<Shader*>& shaders, Surface* surface, const Buffers::AttributeFrame& frame, U32 byteSize)
     {
         ScopedData<VkPipelineShaderStageCreateInfo> create_infos(shaders.size());
         for (U32 i = 0; i < create_infos.size(); i++)
@@ -764,12 +764,18 @@ namespace cpp2d::Graphics
             }
         };
 
+        VkPushConstantRange push_constant {
+            .offset = 0,
+            .size = byteSize,
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+        };
+
         VkPipelineLayoutCreateInfo pipeline_layout_info {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
             .setLayoutCount = 0,
             .pSetLayouts = nullptr,
-            .pushConstantRangeCount = 0,
-            .pPushConstantRanges = nullptr
+            .pushConstantRangeCount = (byteSize > 0?U32(1):U32(0)),
+            .pPushConstantRanges = (byteSize > 0?&push_constant:nullptr)
         };
 
         const VkDevice device = static_cast<VkDevice>(_device.handle);

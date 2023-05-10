@@ -8,3 +8,5 @@
 #include "./Graphics/GraphicsPipeline.h"
 #include "./Graphics/GDILifetime.h"
 #include "./Graphics/VertexArray.h"
+
+#include "./Graphics/Buffers.h"

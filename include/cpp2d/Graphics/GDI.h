@@ -5,7 +5,7 @@
 #include "../Util.h"
 #include "../Utility.h"
 #include "GDILifetime.h"
-#include "AttributeFrame.h"
+#include "./Buffers/AttributeBuffer.h"
 
 namespace cpp2d
 {
@@ -71,7 +71,7 @@ namespace cpp2d::Graphics
         SurfaceHandle     getSurfaceHandle(const Window* window);
         GDIHandle         getHandle() const;
 
-        AllocatorHandle   getAllocator(const DeviceHandle& handle) const;
+        AllocatorHandle   getAllocator() const;
         GDILogicDevice    getCurrentLogicDevice() const;
         GDILogicDevice    getLogicDevice(const DeviceHandle& handle) const;
         GDIPhysicalDevice getSuitablePhysicalDevice() const;
@@ -85,7 +85,7 @@ namespace cpp2d::Graphics
         FenceHandle     createFence(GDILifetime* lifetime = nullptr);
 
         ShaderHandle createShader(const U32* data, U32 count, GDILifetime* lifetime = nullptr);
-        GDIPipeline  createPipeline(const ScopedData<Shader*>& shaders, Surface* surface, const AttributeFrame& frame);
+        GDIPipeline  createPipeline(const ScopedData<Shader*>& shaders, Surface* surface, const Buffers::AttributeFrame& frame, U32 byteSize);
         CommandPool  createCommandPool(GDILifetime* lifetime = nullptr);
         CommandBufferHandle createCommandBuffer(const CommandPoolHandle& commandPool);
     };
