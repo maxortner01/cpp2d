@@ -765,9 +765,9 @@ namespace cpp2d::Graphics
         };
 
         VkPushConstantRange push_constant {
+            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
             .offset = 0,
             .size = byteSize,
-            .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
         };
 
         VkPipelineLayoutCreateInfo pipeline_layout_info {

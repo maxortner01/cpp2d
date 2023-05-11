@@ -42,9 +42,9 @@ namespace cpp2d::Buffers
         };
 
         VmaAllocationCreateInfo allocation_create {
+            .flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT,
             .requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
             .preferredFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
-            .flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT
         };
 
         VkBuffer      _handle;

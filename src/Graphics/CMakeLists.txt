@@ -10,7 +10,7 @@ set(DEFINITIONS GDI_VULKAN CPP2D_GRAPHICS_BUILD)
 find_package(Vulkan REQUIRED)
 
 # set to shaderc_combined if in Release, otherwise shaderc_combinedd
-set(SHADERC_LIB_NAME shaderc_combined)
+set(SHADERC_LIB_NAME shaderc_combinedd)
 # !--- Need to check if in debug mode
 cmake_path(GET Vulkan_LIBRARIES PARENT_PATH Vulkan_LIBRARY_DIR)
 find_library(SHADERC ${SHADERC_LIB_NAME} HINTS ${Vulkan_LIBRARY_DIR})

@@ -73,10 +73,16 @@ namespace cpp2d
         {
             if (_types[i] != BufferType::Index) count++;
             else
+            {
+                index_count = get(i).getAllocatedSize() / get(i).getBinding().stride;
                 index_offset = static_cast<VkDeviceSize>(get(i).offset());
+            }
 
             if (_types[i] == BufferType::Vertex)
+            {
+                vertex_count  = get(i).getAllocatedSize() / get(i).getBinding().stride;
                 vertex_offset = static_cast<VkDeviceSize>(get(i).offset());
+            }
         }
 
         // Need to rework this... A vertex array needs types Vertex and Other to be contiguous while
