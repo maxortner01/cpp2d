@@ -7,17 +7,14 @@
 namespace cpp2d
 {
     VertexArray::VertexArray(const std::initializer_list<BufferType>& bufferTypes) :
-        ScopedData<Buffers::SubBuffer>(bufferTypes.size()),
+        ScopedData<VertexBuffer>(bufferTypes.size()),
         _types((BufferType*)std::malloc(sizeof(BufferType) * bufferTypes.size()))
     {
-        _allocation = new Buffers::Allocation;
-        std::memset(_allocation, 0, sizeof(Buffers::Allocation));
-
         std::memcpy(_types, bufferTypes.begin(), sizeof(BufferType) * bufferTypes.size());
 
         for (U32 i = 0; i < bufferTypes.size(); i++)
         {
-            new(&get(i)) Buffers::SubBuffer(_allocation);
+            new(&get(i)) VertexBuffer();
             if (_types[i] == BufferType::Index)
             {
                 get(i).setBinding(Buffers::Binding {
@@ -31,23 +28,12 @@ namespace cpp2d
     VertexArray::~VertexArray()
     {
         for (U32 i = 0; i < size(); i++)
-            get(i).~SubBuffer();
-
-        if (_allocation->_data)
-        {
-            Buffers::GraphicsAllocator& allocator = Buffers::GraphicsAllocator::get();
-            allocator.free(_allocation);
-        }
+            get(i).~VertexBuffer();
     }
 
     void VertexArray::setBufferData(CU32& index, const void* data, CU32& bytes)
     {
-        U32 offset = 0;
-        for (U32 i = 0; i < index; i++)
-            offset += get(i).getAllocatedBytes();
-
-        Buffers::SubBuffer& buffer = get(index);
-        buffer.setOffset(offset);
+        VertexBuffer& buffer = get(index);
         buffer.setData(data, bytes);
     }
 
@@ -77,7 +63,6 @@ namespace cpp2d
         auto attributes = getAttributeFrame();
         auto command_buffer = static_cast<VkCommandBuffer>(frameData.command_buffer);
 
-        U32 offset_counter = 0;
         VkDeviceSize vertex_offset = 0;
         VkDeviceSize index_offset  = 0;
         U32 vertex_count = 0;
@@ -88,18 +73,10 @@ namespace cpp2d
         {
             if (_types[i] != BufferType::Index) count++;
             else
-            {
-                index_count  = get(i).getAllocatedBytes() / get(i).getBinding().stride;
-                index_offset = offset_counter;
-            }
+                index_offset = static_cast<VkDeviceSize>(get(i).offset());
 
             if (_types[i] == BufferType::Vertex)
-            {
-                vertex_count = get(i).getAllocatedBytes() / get(i).getBinding().stride;
-                vertex_offset = offset_counter;
-            }
-
-            offset_counter += get(i).getAllocatedBytes();
+                vertex_offset = static_cast<VkDeviceSize>(get(i).offset());
         }
 
         // Need to rework this... A vertex array needs types Vertex and Other to be contiguous while
@@ -111,8 +88,8 @@ namespace cpp2d
         // ...
 
         // just kidding we need to store a list of offsets for each vertex/other buffer
-
-        auto buffer = static_cast<VkBuffer>(_allocation->_handle);
+        auto allocatordata = (Buffers::GraphicsAllocatorData*)(VertexArrayMemoryManager::get().getHeapData());
+        auto buffer = static_cast<VkBuffer>(allocatordata->buffer);
         if (index_offset != 0)
         {
             vkCmdBindIndexBuffer(

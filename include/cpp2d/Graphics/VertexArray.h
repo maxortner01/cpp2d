@@ -12,12 +12,16 @@ namespace cpp2d
         Other,
         Index
     };
+    
+    class VertexArray;
 
+    using VertexArrayMemoryManager = Buffers::GraphicsStackManager<VertexArray>;
+    using VertexBuffer = Buffers::AttributeBuffer<VertexArrayMemoryManager>;
     class CPP2D_DLL VertexArray : 
-        public ScopedData<Buffers::SubBuffer>,
+        public ScopedData<VertexBuffer>,
         public Utility::NoCopy
     {
-        Buffers::Allocation* _allocation;
+        //Buffers::Allocation* _allocation;
         BufferType* const _types;
 
     public:

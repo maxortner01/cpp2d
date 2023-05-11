@@ -27,25 +27,26 @@ namespace cpp2d::Buffers
         std::vector<Attribute> attributes;
     };
 
+    template<typename _MemManager>
     class AttributeBuffer :
         public Utility::NoCopy
     {
-    protected:
-        Buffers::Allocation* _allocation;
+        void* _data;
+        U32   _allocated_size;
 
         Binding _binding;
         std::vector<Attribute> _attributes;
 
     public:
+        AddrDist offset() const;
+
         void setBinding(const Binding& binding);
         Binding getBinding() const;
 
-        virtual void setData(const void* data, CU32& bytes) = 0;
+        void setData(const void* data, CU32& bytes);
 
         void pushAttributes(const std::initializer_list<Attribute>& list);
         void pushAttribute(const Attribute& attribute);
         const std::vector<Attribute>& getAttributes() const;
-
-        Graphics::BufferHandle getHandle() const;
     };  
 }
