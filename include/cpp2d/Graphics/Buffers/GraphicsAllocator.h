@@ -16,6 +16,8 @@ namespace cpp2d::Buffers
     class GraphicsAllocator :
         public Memory::Allocator<GraphicsAllocator>
     {   
+        Graphics::AllocatorHandle _allocator;
+
         GraphicsAllocator();
         ~GraphicsAllocator();
     public:

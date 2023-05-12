@@ -6,6 +6,7 @@
 #include "../Utility.h"
 #include "GDILifetime.h"
 #include "./Buffers/AttributeBuffer.h"
+#include "../Memory.h"
 
 namespace cpp2d
 {
@@ -50,8 +51,9 @@ namespace cpp2d::Graphics
         GDIHandle       _handle;
         GDIDebugHandle  _debug;
         GDILogicDevice  _device;
-        AllocatorHandle _allocator;
         I32 _suitable_device_index;
+
+        std::stack<void (*)(void)> _allocator_destructors;
 
         void _init();
         void _delete();
@@ -71,7 +73,6 @@ namespace cpp2d::Graphics
         SurfaceHandle     getSurfaceHandle(const Window* window);
         GDIHandle         getHandle() const;
 
-        AllocatorHandle   getAllocator() const;
         GDILogicDevice    getCurrentLogicDevice() const;
         GDILogicDevice    getLogicDevice(const DeviceHandle& handle) const;
         GDIPhysicalDevice getSuitablePhysicalDevice() const;
@@ -88,5 +89,17 @@ namespace cpp2d::Graphics
         GDIPipeline  createPipeline(const ScopedData<Shader*>& shaders, Surface* surface, const Buffers::AttributeFrame& frame, U32 byteSize);
         CommandPool  createCommandPool(GDILifetime* lifetime = nullptr);
         CommandBufferHandle createCommandBuffer(const CommandPoolHandle& commandPool);
+
+        void clearAllocations();
+
+        template<typename _Allocator>
+        void registerAllocator(_Allocator* allocator);
     };
+
+    template<typename _Allocator>
+    void GDI::registerAllocator(_Allocator* allocator)
+    {
+        static_assert(std::is_base_of<Memory::Allocator<_Allocator>, _Allocator>::value);
+        _allocator_destructors.push(allocator->destroy);
+    }
 }

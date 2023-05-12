@@ -413,6 +413,18 @@ namespace cpp2d::Graphics
             );
         }
 
+        {
+            Utility::ArgumentList arguments;
+            arguments.set(this);
+
+            pushObject(GDIObjectInstance {
+                .type = GDIObject::DestroyAllocators,
+                .handle = this,
+                .arguments = arguments
+            });
+        }
+
+        /*
         VmaAllocator allocator;
         VmaAllocatorCreateInfo allocator_create {
             .physicalDevice = static_cast<VkPhysicalDevice>(getSuitablePhysicalDevice()),
@@ -435,7 +447,7 @@ namespace cpp2d::Graphics
                 .handle = allocator,
                 .arguments = arguments
             });
-        }
+        }*/
 
         return static_cast<SurfaceHandle>(surface);
     }
@@ -443,12 +455,6 @@ namespace cpp2d::Graphics
     GDIHandle GDI::getHandle() const
     {
         return _handle;
-    }
-
-    AllocatorHandle GDI::getAllocator() const
-    {
-        //assert(_device.handle == handle);
-        return _allocator;
     }
 
     GDILogicDevice GDI::getCurrentLogicDevice() const
@@ -950,6 +956,15 @@ namespace cpp2d::Graphics
         {
             std::free(_physical_devices.handles);
             _physical_devices.handles = nullptr;
+        }
+    }
+
+    void GDI::clearAllocations()
+    {
+        while (!_allocator_destructors.empty())
+        {
+            _allocator_destructors.top()();
+            _allocator_destructors.pop();
         }
     }
 }

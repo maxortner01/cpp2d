@@ -24,14 +24,40 @@ namespace cpp2d::Buffers
     }*/
 
     GraphicsAllocator::GraphicsAllocator()
-    {   }
+    {   
+        // register with gdi
+        // create allocator
+        auto& gdi = Graphics::GDI::get();
+
+        VmaAllocator allocator;
+        VmaAllocatorCreateInfo allocator_create {
+            .physicalDevice = static_cast<VkPhysicalDevice>(gdi.getSuitablePhysicalDevice()),
+            .device = static_cast<VkDevice>(gdi.getCurrentLogicDevice().handle),
+            .instance = static_cast<VkInstance>(gdi.getHandle())
+        };
+
+        VkResult result = vmaCreateAllocator(&allocator_create, &allocator);
+        if (result != VK_SUCCESS)
+            cpp2dERROR("Error creating graphics allocator.");
+        else
+            _allocator = static_cast<Graphics::AllocatorHandle>(allocator);
+
+        Graphics::GDI::get().registerAllocator(this);
+    }
 
     GraphicsAllocator::~GraphicsAllocator()
-    {   }
+    {   
+        cpp2dERROR("Destroying allocator");
+
+        // Go though manifest of pointers and free
+
+        vmaDestroyAllocator(static_cast<VmaAllocator>(_allocator));
+    }
 
     void** GraphicsAllocator::allocate(CU32& bytes)
     {
-        GraphicsAllocatorData* ptr = (GraphicsAllocatorData*)std::malloc(sizeof(GraphicsAllocatorData));
+        cpp2dINFO("Allocating %u bytes on the GPU.", bytes);
+        //GraphicsAllocatorData* ptr = (GraphicsAllocatorData*)std::malloc(sizeof(GraphicsAllocatorData));
         std::memset(ptr, 0, sizeof(GraphicsAllocatorData));
 
 #   ifdef GDI_VULKAN
@@ -49,7 +75,7 @@ namespace cpp2d::Buffers
 
         VkBuffer      _handle;
         VmaAllocation _allocation;
-        auto allocator = static_cast<VmaAllocator>(Graphics::GDI::get().getAllocator());
+        auto allocator = static_cast<VmaAllocator>(_allocator);
 
         VkResult result = vmaCreateBuffer(
             allocator,
@@ -81,7 +107,7 @@ namespace cpp2d::Buffers
         GraphicsAllocatorData* data = (GraphicsAllocatorData*)(ptr);
 
 #ifdef GDI_VULKAN
-        VmaAllocator  allocator  = static_cast<VmaAllocator> (Graphics::GDI::get().getAllocator());
+        VmaAllocator  allocator  = static_cast<VmaAllocator> (_allocator);
         VmaAllocation allocation = static_cast<VmaAllocation>(data->allocation);
         VkBuffer      buffer     = static_cast<VkBuffer>(data->buffer);
         vmaUnmapMemory(allocator, allocation);

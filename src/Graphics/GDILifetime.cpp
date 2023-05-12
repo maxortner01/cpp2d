@@ -162,6 +162,15 @@ namespace cpp2d::Graphics
                     break;
                 }
 
+            case GDIObject::DestroyAllocators:
+                {
+                    cpp2dINFO("Destroying allocators.");
+                    auto* gdi = object.arguments.get<Graphics::GDI*>();
+
+                    gdi->clearAllocations();
+                }
+
+            /*
             case GDIObject::Allocator:
                 {
                     cpp2dINFO("Destroying allocator.");
@@ -169,7 +178,7 @@ namespace cpp2d::Graphics
 
                     vmaDestroyAllocator(allocator);
                     break;
-                }
+                }*/
 
             }
 

@@ -21,7 +21,7 @@ namespace cpp2d::Graphics
         CommandPool,
         Semaphore,
         Fence,
-        Allocator
+        DestroyAllocators
     };
 
     struct GDIObjectInstance
