@@ -37,6 +37,9 @@ namespace cpp2d::Buffers
         std::vector<Attribute> _attributes;
 
     public:
+        AttributeBuffer();
+        ~AttributeBuffer();
+
         U32      getAllocatedSize() const;
         AddrDist offset() const;
 
@@ -51,6 +54,21 @@ namespace cpp2d::Buffers
     };  
 
     // Implementation
+    template<typename _MemManager>
+    AttributeBuffer<_MemManager>::AttributeBuffer() :
+        _data(nullptr),
+        _allocated_size(0)
+    {   }
+
+    template<typename _MemManager>
+    AttributeBuffer<_MemManager>::~AttributeBuffer()
+    {
+        if (_data)
+        {
+            _MemManager& allocator = _MemManager::get();
+            allocator.release(&_data);
+        }
+    }
 
     template<typename _MemManager>
     U32 AttributeBuffer<_MemManager>::getAllocatedSize() const
@@ -84,7 +102,7 @@ namespace cpp2d::Buffers
 
         if (bytes > _allocated_size || !data)
         {
-            if (bytes > _allocated_size)
+            if (bytes > _allocated_size && _data)
                 allocator.release(&_data);
 
             allocator.request(&_data, bytes);

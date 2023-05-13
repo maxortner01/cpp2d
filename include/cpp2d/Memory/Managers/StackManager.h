@@ -1,6 +1,9 @@
 #pragma once
 
+#include "../Allocators/HeapAllocator.h"
 #include "../Manager.h"
+
+#define SIZE 100000
 
 namespace cpp2d::Memory
 {
@@ -20,6 +23,9 @@ namespace cpp2d::Memory
         public Manager<StackManager<_Allocator, _InstanceClass>, _Allocator>
     {
         void* _iterator;
+
+        std::vector<U32>    _chunk_sizes;
+        std::vector<void**> _chunks;
 
         StackManager();
         ~StackManager();
@@ -55,13 +61,15 @@ namespace cpp2d::Memory
          * @param ptr A pointer to a pointer to the memory to release.
          */
         void release(void** ptr) override;
+
+        U32 bytesUsed() const;
     };
 
     template<typename _Allocator, class _InstanceClass>
     StackManager<_Allocator, _InstanceClass>::StackManager()
     {
         _Allocator& allocator = _Allocator::get();
-        this->_heap= allocator.allocate(1000); // Some constant starting value
+        this->_heap= allocator.allocate(SIZE); // Some constant starting value
         _iterator = this->_heap;
     }
 
@@ -87,11 +95,49 @@ namespace cpp2d::Memory
     {
         *ptr = _iterator;
         _iterator = (void*)((char*)_iterator + bytes);
+
+        assert(offset(&_iterator) < SIZE);
+        _chunks.push_back(ptr);
+        _chunk_sizes.push_back(bytes);
     }
 
+    // Here we defrag by moving the pointers (after the given object) 
+    // back the amount of bytes the released object is
     template<typename _Allocator, class _InstanceClass>
     void StackManager<_Allocator, _InstanceClass>::release(void** ptr)
     {
+        assert(ptr && *ptr);
+        CU32 pointer_index = std::distance(_chunks.begin(), std::find(_chunks.begin(), _chunks.end(), ptr));
+
+        CU32 chunk_size    = _chunk_sizes[pointer_index];
+        CU32 bytes_to_copy = (U32)((U8*)_iterator - (U8*)*ptr) - chunk_size;
+        
+        _iterator = (void*)((U8*)_iterator - chunk_size);
+
+        if (bytes_to_copy)
+        {
+            auto* temp = cpp2dAlloc(bytes_to_copy);
+            std::memcpy(temp, (void*)((U8*)*ptr + chunk_size), bytes_to_copy);
+            std::memcpy(*ptr, temp, bytes_to_copy);
+            cpp2dFree(temp);
+        }
+
+        for (
+            auto ptr_it = std::find(_chunks.begin(), _chunks.end(), ptr) + 1;
+            ptr_it != _chunks.end();
+            ptr_it++
+        )
+            **ptr_it = (void*)((U8*)**ptr_it - chunk_size);
+
+        _chunks.erase(_chunks.begin() + pointer_index);
+        _chunk_sizes.erase(_chunk_sizes.begin() + pointer_index);
+
         *ptr = nullptr;
+    }
+
+    template<typename _Allocator, class _InstanceClass>
+    U32 StackManager<_Allocator, _InstanceClass>::bytesUsed() const
+    {
+        return offset(&_iterator);
     }
 }
