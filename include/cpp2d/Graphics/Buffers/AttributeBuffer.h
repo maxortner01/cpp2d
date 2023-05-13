@@ -50,6 +50,8 @@ namespace cpp2d::Buffers
         const std::vector<Attribute>& getAttributes() const;
     };  
 
+    // Implementation
+
     template<typename _MemManager>
     U32 AttributeBuffer<_MemManager>::getAllocatedSize() const
     {

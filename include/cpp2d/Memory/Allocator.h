@@ -12,7 +12,7 @@ namespace cpp2d::Memory
         public Utility::NoCopy,
         public Utility::Singleton<_ChildClass>
     {
-        virtual void** allocate(CU32&) = 0;
-        virtual void free(void**) = 0;
+        virtual void* allocate(CU32&) = 0;
+        virtual void free(void*) = 0;
     };
 }

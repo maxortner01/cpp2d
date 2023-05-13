@@ -20,15 +20,12 @@ namespace cpp2d::Memory
         public Manager<StackManager<_Allocator, _InstanceClass>, _Allocator>
     {
         void* _iterator;
-        void** _heap;
 
         StackManager();
         ~StackManager();
 
     public:
         friend class Utility::Singleton<StackManager<_Allocator, _InstanceClass>>;
-
-        void** getHeapData() const;
 
         /**
          * @brief Calculates the offset of a memory address from the start of the stack.
@@ -61,34 +58,28 @@ namespace cpp2d::Memory
     };
 
     template<typename _Allocator, class _InstanceClass>
-    void** StackManager<_Allocator, _InstanceClass>::getHeapData() const
-    {
-        return _heap;
-    }
-
-    template<typename _Allocator, class _InstanceClass>
     StackManager<_Allocator, _InstanceClass>::StackManager()
     {
         _Allocator& allocator = _Allocator::get();
-        _heap = allocator.allocate(1000); // Some constant starting value
-        _iterator = *_heap;
+        this->_heap= allocator.allocate(1000); // Some constant starting value
+        _iterator = this->_heap;
     }
 
     template<typename _Allocator, class _InstanceClass>
     StackManager<_Allocator, _InstanceClass>::~StackManager()
     {
-        if (_heap)
+        if (this->_heap)
         {
             _Allocator& allocator = _Allocator::get();
-            allocator.free(_heap);
-            _heap = nullptr;
+            allocator.free(this->_heap);
+            this->_heap = nullptr;
         }
     }
 
     template<typename _Allocator, class _InstanceClass>
     AddrDist StackManager<_Allocator, _InstanceClass>::offset(void* const * ptr) const
     {
-        return (char*)*ptr - (char*)*_heap;
+        return (char*)*ptr - (char*)this->_heap;
     }
 
     template<typename _Allocator, class _InstanceClass>

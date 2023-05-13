@@ -15,5 +15,16 @@ namespace cpp2d::Memory
         virtual AddrDist offset(void* const * ptr) const = 0;
         virtual void     request(void** ptr, CU32& bytes) = 0;
         virtual void     release(void** ptr) = 0;
+
+        const void* getHeap() const;
+
+    protected:
+        void* _heap;
     };
+
+    template<class _ChildClass, class _Allocator>
+    const void* Manager<_ChildClass, _Allocator>::getHeap() const
+    {
+        return _heap;
+    }
 }

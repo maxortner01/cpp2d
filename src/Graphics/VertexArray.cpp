@@ -75,13 +75,13 @@ namespace cpp2d
             else
             {
                 index_count = get(i).getAllocatedSize() / get(i).getBinding().stride;
-                index_offset = static_cast<VkDeviceSize>(get(i).offset());
+                index_offset = static_cast<VkDeviceSize>(get(i).offset() + sizeof(Buffers::GraphicsAllocatorData) + sizeof(U32) * 2);
             }
 
             if (_types[i] == BufferType::Vertex)
             {
                 vertex_count  = get(i).getAllocatedSize() / get(i).getBinding().stride;
-                vertex_offset = static_cast<VkDeviceSize>(get(i).offset());
+                vertex_offset = static_cast<VkDeviceSize>(get(i).offset() + sizeof(Buffers::GraphicsAllocatorData) + sizeof(U32) * 2);
             }
         }
 
@@ -94,7 +94,9 @@ namespace cpp2d
         // ...
 
         // just kidding we need to store a list of offsets for each vertex/other buffer
-        auto allocatordata = (Buffers::GraphicsAllocatorData*)(VertexArrayMemoryManager::get().getHeapData());
+        //auto allocatordata = (Buffers::GraphicsAllocatorData*)(VertexArrayMemoryManager::get().getHeapData());
+        const void* _heap = VertexArrayMemoryManager::get().getHeap();
+        auto* allocatordata = Buffers::GraphicsAllocator::get().extractData(_heap);
         auto buffer = static_cast<VkBuffer>(allocatordata->buffer);
         if (index_offset != 0)
         {

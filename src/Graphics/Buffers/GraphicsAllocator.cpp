@@ -7,26 +7,9 @@
 
 namespace cpp2d::Buffers
 {
-    /*
-    Allocation::Allocation() :
-        _handle(nullptr),
-        _allocation(nullptr),
-        _allocation_size(0),
-        _data(nullptr)
-    {   }*/
-
-    /*
-    void Allocation::setData(const void* data, CU32& bytes, CU32& offset)
-    {
-        assert(bytes + offset < _allocation_size);
-        void* _ptr = (void*)((char*)_data + offset);
-        std::memcpy(_ptr, data, bytes);
-    }*/
 
     GraphicsAllocator::GraphicsAllocator()
     {   
-        // register with gdi
-        // create allocator
         auto& gdi = Graphics::GDI::get();
 
         VmaAllocator allocator;
@@ -36,12 +19,14 @@ namespace cpp2d::Buffers
             .instance = static_cast<VkInstance>(gdi.getHandle())
         };
 
+        // create the allocator with vma
         VkResult result = vmaCreateAllocator(&allocator_create, &allocator);
         if (result != VK_SUCCESS)
             cpp2dERROR("Error creating graphics allocator.");
         else
             _allocator = static_cast<Graphics::AllocatorHandle>(allocator);
 
+        // register the allocator with the gdi
         Graphics::GDI::get().registerAllocator(this);
     }
 
@@ -54,16 +39,37 @@ namespace cpp2d::Buffers
         vmaDestroyAllocator(static_cast<VmaAllocator>(_allocator));
     }
 
-    void** GraphicsAllocator::allocate(CU32& bytes)
+    GraphicsAllocatorData* GraphicsAllocator::extractData(const void* ptr) const
     {
-        cpp2dINFO("Allocating %u bytes on the GPU.", bytes);
+        assert(ptr);
+        U32 heap_size = *((U32*)ptr - 1);
+        U32 data_size = *((U32*)ptr - 2);
+        assert(data_size == sizeof(GraphicsAllocatorData));
+        auto* data = (GraphicsAllocatorData*)((U8*)ptr - sizeof(U32) * 2 - data_size);
+
+        return data;
+    }
+
+    void* GraphicsAllocator::allocate(CU32& _bytes)
+    {
+        cpp2dINFO("Allocating %u bytes on the GPU.", _bytes);
+        struct 
+        {
+            GraphicsAllocatorData data{0};
+            U32 size;
+            U32 bytes;
+        } alloc_data;
+
+        alloc_data.size  = sizeof(GraphicsAllocatorData);
+        alloc_data.bytes = _bytes;
+
         //GraphicsAllocatorData* ptr = (GraphicsAllocatorData*)std::malloc(sizeof(GraphicsAllocatorData));
-        std::memset(ptr, 0, sizeof(GraphicsAllocatorData));
+        //std::memset(ptr, 0, sizeof(GraphicsAllocatorData));
 
 #   ifdef GDI_VULKAN
         VkBufferCreateInfo buffer_create {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .size  = bytes,
+            .size  = _bytes + sizeof(alloc_data),
             .usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
         };
 
@@ -92,19 +98,24 @@ namespace cpp2d::Buffers
             return nullptr;
         }
 
-        ptr->buffer     = static_cast<Graphics::BufferHandle>(_handle);
-        ptr->allocation = static_cast<Graphics::AllocationHandle>(_allocation);
-        ptr->allocation_size = bytes;
-        vmaMapMemory(allocator, _allocation, &ptr->data);
+        //ptr->buffer     = static_cast<Graphics::BufferHandle>(_handle);
+        //ptr->allocation = static_cast<Graphics::AllocationHandle>(_allocation);
+        //ptr->allocation_size = bytes;
+        alloc_data.data.buffer     = static_cast<Graphics::BufferHandle>(_handle);
+        alloc_data.data.allocation = static_cast<Graphics::AllocationHandle>(_allocation);
+
+        void* data;
+        vmaMapMemory(allocator, _allocation, &data);
+        std::memcpy(data, &alloc_data, sizeof(alloc_data));
 #   endif
 
-        return (void**)ptr;
+        return (void*)((U8*)data + sizeof(alloc_data));
     }
     
-    void GraphicsAllocator::free(void** ptr)
+    void GraphicsAllocator::free(void* ptr)
     {
-        assert(ptr);
-        GraphicsAllocatorData* data = (GraphicsAllocatorData*)(ptr);
+        //GraphicsAllocatorData* data = (GraphicsAllocatorData*)(ptr);
+        auto* data = extractData(ptr);
 
 #ifdef GDI_VULKAN
         VmaAllocator  allocator  = static_cast<VmaAllocator> (_allocator);
@@ -114,88 +125,11 @@ namespace cpp2d::Buffers
         vmaDestroyBuffer(allocator, buffer, allocation);
 #endif
 
-        data->buffer     = nullptr;
-        data->allocation = nullptr;
-        data->data       = nullptr;
-        std::free(ptr);
-    }
-
-    /*
-
-    void GraphicsAllocator::reallocate(CU32& bytes, Allocation* allocation)
-    {
-        assert(allocation);
-        if (!allocation->_data) return allocate(bytes, allocation);
-
-        if (!bytes) free(allocation);
-
-        CU32  copy_size = std::min(bytes, allocation->_allocation_size);
-        void* temp_data = std::malloc(copy_size); // sub out for 'cpu allocator'->allocate class
-
-        std::memcpy(temp_data, allocation->_data, copy_size);
-        free(allocation);
-
-        allocate(bytes, allocation);
-        std::memcpy(allocation->_data, temp_data, copy_size);
-        std::free(temp_data); // sub out for 'cpu allocator'->free class
-
-        allocation->_allocation_size = bytes;
-    }
-
-    void GraphicsAllocator::allocate(CU32& bytes, Allocation* allocation)
-    {
-        assert(allocation);
-
-#   ifdef GDI_VULKAN
-        VkBufferCreateInfo buffer_create {
-            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .size  = bytes,
-            .usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
-        };
-
-        VmaAllocationCreateInfo allocation_create {
-            .requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-            .preferredFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
-            .flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT
-        };
-
-        VkBuffer      _handle;
-        VmaAllocation _allocation;
-        auto allocator = static_cast<VmaAllocator>(Graphics::GDI::get().getAllocator());
-
-        VkResult result = vmaCreateBuffer(
-            allocator,
-            &buffer_create,
-            &allocation_create,
-            &_handle, 
-            &_allocation,
-            nullptr
+        //data->buffer     = nullptr;
+        //data->allocation = nullptr;
+        //data->data       = nullptr;
+        std::free(
+            (void*)data
         );
-
-        if (result != VK_SUCCESS)
-        {
-            cpp2dERROR("Vertex buffer allocation failed.");
-            return;
-        }
-
-        allocation->_handle     = static_cast<Graphics::BufferHandle>(_handle);
-        allocation->_allocation = static_cast<Graphics::AllocationHandle>(_allocation);
-        allocation->_allocation_size = bytes;
-        vmaMapMemory(allocator, _allocation, &allocation->_data);
-#   endif
     }
-
-    void GraphicsAllocator::free(Allocation* _allocation)
-    {
-        assert(_allocation && _allocation->_data);
-
-        VmaAllocator  allocator  = static_cast<VmaAllocator> (Graphics::GDI::get().getAllocator());
-        VmaAllocation allocation = static_cast<VmaAllocation>(_allocation->_allocation);
-        VkBuffer      buffer     = static_cast<VkBuffer>(_allocation->_handle);
-        vmaUnmapMemory(allocator, allocation);
-        vmaDestroyBuffer(allocator, buffer, allocation);
-        _allocation->_handle     = nullptr;
-        _allocation->_allocation = nullptr;
-        _allocation->_data       = nullptr;
-    }*/
 }
