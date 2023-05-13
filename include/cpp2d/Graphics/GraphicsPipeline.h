@@ -34,7 +34,7 @@ namespace Graphics
         Buffers::AttributeFrame _attributes;
         Graphics::Surface* _surface;
 
-        void _set_push_constants(const Graphics::FrameData& frame_data, const void* data);
+        void _set_push_constants(const Graphics::FrameData* frame_data, const void* data);
 
     public:
         GraphicsPipeline(std::initializer_list<ShaderType> shaders, Graphics::Surface& surface, const Buffers::AttributeFrame& attributes);
@@ -45,7 +45,7 @@ namespace Graphics
 
         bool shadersComplete() const;
 
-        void bind(const Graphics::FrameData& frameData);
+        void bind(const Graphics::FrameData* frameData);
 
         template<typename T>
         void setPushConstants()
@@ -54,7 +54,7 @@ namespace Graphics
         }
 
         template<typename T>
-        void setPushConstantData(const Graphics::FrameData& frameData, const T& data)
+        void setPushConstantData(const Graphics::FrameData* frameData, const T& data)
         {
             assert(sizeof(T) == _push_constants_size);
             _set_push_constants(frameData, &data);

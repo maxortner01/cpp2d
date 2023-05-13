@@ -424,31 +424,6 @@ namespace cpp2d::Graphics
             });
         }
 
-        /*
-        VmaAllocator allocator;
-        VmaAllocatorCreateInfo allocator_create {
-            .physicalDevice = static_cast<VkPhysicalDevice>(getSuitablePhysicalDevice()),
-            .device = static_cast<VkDevice>(_device.handle),
-            .instance = static_cast<VkInstance>(_handle)
-        };
-
-        VkResult result = vmaCreateAllocator(&allocator_create, &allocator);
-        if (result != VK_SUCCESS)
-            cpp2dERROR("Error creating VMA allocator.");
-        else
-        {
-            _allocator = static_cast<AllocatorHandle>(allocator);
-            
-            Utility::ArgumentList arguments;
-            arguments.set(allocator);
-
-            pushObject(GDIObjectInstance {
-                .type = GDIObject::Allocator,
-                .handle = allocator,
-                .arguments = arguments
-            });
-        }*/
-
         return static_cast<SurfaceHandle>(surface);
     }
 

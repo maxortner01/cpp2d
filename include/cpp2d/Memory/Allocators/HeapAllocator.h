@@ -28,6 +28,3 @@ namespace cpp2d::Memory
         std::free(ptr);
     }
 }
-
-#define cpp2dAlloc(bytes) HeapAllocator::get().allocate(bytes)
-#define cpp2dFree(ptr) HeapAllocator::get().free(ptr)

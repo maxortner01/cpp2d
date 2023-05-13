@@ -170,16 +170,6 @@ namespace cpp2d::Graphics
                     gdi->clearAllocations();
                 }
 
-            /*
-            case GDIObject::Allocator:
-                {
-                    cpp2dINFO("Destroying allocator.");
-                    VmaAllocator allocator = object.arguments.get<VmaAllocator>();
-
-                    vmaDestroyAllocator(allocator);
-                    break;
-                }*/
-
             }
 
             object.arguments.free();

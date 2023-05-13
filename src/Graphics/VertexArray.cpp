@@ -57,11 +57,16 @@ namespace cpp2d
         return frame;
     }
 
-    void VertexArray::draw(const Graphics::FrameData& frameData)
+    void VertexArray::bind(const Graphics::FrameData* frameData)
+    {
+        
+    }
+
+    void VertexArray::draw(const Graphics::FrameData* frameData)
     {
 #   ifdef GDI_VULKAN
         auto attributes = getAttributeFrame();
-        auto command_buffer = static_cast<VkCommandBuffer>(frameData.command_buffer);
+        auto command_buffer = static_cast<VkCommandBuffer>(frameData->command_buffer);
 
         VkDeviceSize vertex_offset = 0;
         VkDeviceSize index_offset  = 0;
@@ -111,7 +116,7 @@ namespace cpp2d
         vkCmdBindVertexBuffers(
             command_buffer,
             0,
-            count,
+            1,
             &buffer,
             &vertex_offset
         );

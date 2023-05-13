@@ -1,4 +1,5 @@
 #include <cpp2d/Graphics.h>
+#include <cpp2d/Memory.h>
 
 #ifdef GDI_VULKAN
 #   include <vulkan/vulkan.h>
@@ -88,9 +89,11 @@ namespace cpp2d::Graphics
         //assert(!_frames);
     }
 
-    FrameData Surface::startRenderPass()
+    FrameData* Surface::startRenderPass()
     {
 #   ifdef GDI_VULKAN
+        Memory::FrameManager<Memory::HeapAllocator>::get().resetWrite();
+
         Frame&   frame  = getFrame();
         VkDevice device = static_cast<VkDevice>(frame.command_pool.device); 
 
@@ -109,7 +112,7 @@ namespace cpp2d::Graphics
         if (result != VK_SUCCESS)
         {
             cpp2dERROR("Error beginning command buffer (%i).", result);
-            return FrameData{ 0 };
+            return nullptr;
         }
         frame.command_buffers.active = true;
 
@@ -146,17 +149,19 @@ namespace cpp2d::Graphics
         vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 #   endif
 
-        return FrameData { 
-            .command_buffer = frame.command_buffers.handle
-        };
+        FrameData* data;
+        Memory::FrameManager<Memory::HeapAllocator>::get().request((void**)&data, sizeof(FrameData));
+        data->command_buffer = frame.command_buffers.handle; 
+
+        return data;
     }
 
-    void Surface::endRenderPass(const FrameData& frameData)
+    void Surface::endRenderPass(const FrameData* frameData)
     {
 #   ifdef GDI_VULKAN
         const U32 index = 0;
         Frame& frame = getFrame();
-        VkCommandBuffer command_buffer = static_cast<VkCommandBuffer>(frameData.command_buffer);
+        VkCommandBuffer command_buffer = static_cast<VkCommandBuffer>(frameData->command_buffer);
 
         vkCmdEndRenderPass(command_buffer);
         VkResult result = vkEndCommandBuffer(command_buffer);

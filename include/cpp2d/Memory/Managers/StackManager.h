@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Managers/HeapManager.h"
 #include "../Allocators/HeapAllocator.h"
 #include "../Manager.h"
 
@@ -18,9 +19,9 @@ namespace cpp2d::Memory
      * @tparam _Allocator The allocator to use for memory management.
      * @tparam _InstanceClass The class to use as the base class for stack instances.
      */
-    template<typename _Allocator, class _InstanceClass = BaseStack>
+    template<typename _Allocator, typename _SubManager = HeapManager, class _InstanceClass = BaseStack>
     class StackManager :
-        public Manager<StackManager<_Allocator, _InstanceClass>, _Allocator>
+        public Manager<StackManager<_Allocator, _SubManager, _InstanceClass>, _Allocator>
     {
         void* _iterator;
 
@@ -31,7 +32,7 @@ namespace cpp2d::Memory
         ~StackManager();
 
     public:
-        friend class Utility::Singleton<StackManager<_Allocator, _InstanceClass>>;
+        friend class Utility::Singleton<StackManager<_Allocator, _SubManager, _InstanceClass>>;
 
         /**
          * @brief Calculates the offset of a memory address from the start of the stack.
@@ -65,16 +66,16 @@ namespace cpp2d::Memory
         U32 bytesUsed() const;
     };
 
-    template<typename _Allocator, class _InstanceClass>
-    StackManager<_Allocator, _InstanceClass>::StackManager()
+    template<typename _Allocator, typename _SubManager, class _InstanceClass>
+    StackManager<_Allocator, _SubManager, _InstanceClass>::StackManager()
     {
         _Allocator& allocator = _Allocator::get();
         this->_heap= allocator.allocate(SIZE); // Some constant starting value
         _iterator = this->_heap;
     }
 
-    template<typename _Allocator, class _InstanceClass>
-    StackManager<_Allocator, _InstanceClass>::~StackManager()
+    template<typename _Allocator, typename _SubManager, class _InstanceClass>
+    StackManager<_Allocator, _SubManager, _InstanceClass>::~StackManager()
     {
         if (this->_heap)
         {
@@ -84,14 +85,14 @@ namespace cpp2d::Memory
         }
     }
 
-    template<typename _Allocator, class _InstanceClass>
-    AddrDist StackManager<_Allocator, _InstanceClass>::offset(void* const * ptr) const
+    template<typename _Allocator, typename _SubManager, class _InstanceClass>
+    AddrDist StackManager<_Allocator, _SubManager, _InstanceClass>::offset(void* const * ptr) const
     {
         return (char*)*ptr - (char*)this->_heap;
     }
 
-    template<typename _Allocator, class _InstanceClass>
-    void StackManager<_Allocator, _InstanceClass>::request(void** ptr, CU32& bytes) 
+    template<typename _Allocator, typename _SubManager, class _InstanceClass>
+    void StackManager<_Allocator, _SubManager, _InstanceClass>::request(void** ptr, CU32& bytes) 
     {
         *ptr = _iterator;
         _iterator = (void*)((char*)_iterator + bytes);
@@ -103,8 +104,8 @@ namespace cpp2d::Memory
 
     // Here we defrag by moving the pointers (after the given object) 
     // back the amount of bytes the released object is
-    template<typename _Allocator, class _InstanceClass>
-    void StackManager<_Allocator, _InstanceClass>::release(void** ptr)
+    template<typename _Allocator, typename _SubManager, class _InstanceClass>
+    void StackManager<_Allocator, _SubManager, _InstanceClass>::release(void** ptr)
     {
         assert(ptr && *ptr);
         CU32 pointer_index = std::distance(_chunks.begin(), std::find(_chunks.begin(), _chunks.end(), ptr));
@@ -116,10 +117,13 @@ namespace cpp2d::Memory
 
         if (bytes_to_copy)
         {
-            auto* temp = cpp2dAlloc(bytes_to_copy);
+            _SubManager& subManager = _SubManager::get();
+
+            void* temp;
+            subManager.request(&temp, bytes_to_copy);
             std::memcpy(temp, (void*)((U8*)*ptr + chunk_size), bytes_to_copy);
             std::memcpy(*ptr, temp, bytes_to_copy);
-            cpp2dFree(temp);
+            subManager.release(&temp);
         }
 
         for (
@@ -135,8 +139,8 @@ namespace cpp2d::Memory
         *ptr = nullptr;
     }
 
-    template<typename _Allocator, class _InstanceClass>
-    U32 StackManager<_Allocator, _InstanceClass>::bytesUsed() const
+    template<typename _Allocator, typename _SubManager, class _InstanceClass>
+    U32 StackManager<_Allocator, _SubManager, _InstanceClass>::bytesUsed() const
     {
         return offset(&_iterator);
     }

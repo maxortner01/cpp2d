@@ -32,6 +32,8 @@ namespace cpp2d
 
         Buffers::AttributeFrame getAttributeFrame() const;
 
-        void draw(const Graphics::FrameData& frameData);
+        static void bind(const Graphics::FrameData* frameData);
+
+        void draw(const Graphics::FrameData* frameData);
     };
 }
