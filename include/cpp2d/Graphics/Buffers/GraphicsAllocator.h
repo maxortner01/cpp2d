@@ -26,6 +26,8 @@ namespace cpp2d::Buffers
     {   
         Graphics::AllocatorHandle _allocator;
 
+        std::vector<void*> pointers;
+
         GraphicsAllocator();
         ~GraphicsAllocator();
     public:

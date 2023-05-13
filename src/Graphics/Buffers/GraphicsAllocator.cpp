@@ -32,9 +32,12 @@ namespace cpp2d::Buffers
 
     GraphicsAllocator::~GraphicsAllocator()
     {   
-        cpp2dERROR("Destroying allocator");
-
         // Go though manifest of pointers and free
+        // seems cheap to use STL in a custom allocator... so its TEMP
+        std::vector<void*> temp_pointers(pointers.begin(), pointers.end());
+
+        for (U32 i = 0; i < temp_pointers.size(); i++)
+            free(temp_pointers[i]);
 
         vmaDestroyAllocator(static_cast<VmaAllocator>(_allocator));
     }
@@ -62,9 +65,6 @@ namespace cpp2d::Buffers
 
         alloc_data.size  = sizeof(GraphicsAllocatorData);
         alloc_data.bytes = _bytes;
-
-        //GraphicsAllocatorData* ptr = (GraphicsAllocatorData*)std::malloc(sizeof(GraphicsAllocatorData));
-        //std::memset(ptr, 0, sizeof(GraphicsAllocatorData));
 
 #   ifdef GDI_VULKAN
         VkBufferCreateInfo buffer_create {
@@ -98,9 +98,6 @@ namespace cpp2d::Buffers
             return nullptr;
         }
 
-        //ptr->buffer     = static_cast<Graphics::BufferHandle>(_handle);
-        //ptr->allocation = static_cast<Graphics::AllocationHandle>(_allocation);
-        //ptr->allocation_size = bytes;
         alloc_data.data.buffer     = static_cast<Graphics::BufferHandle>(_handle);
         alloc_data.data.allocation = static_cast<Graphics::AllocationHandle>(_allocation);
 
@@ -109,12 +106,14 @@ namespace cpp2d::Buffers
         std::memcpy(data, &alloc_data, sizeof(alloc_data));
 #   endif
 
-        return (void*)((U8*)data + sizeof(alloc_data));
+        void* ret = (void*)((U8*)data + sizeof(alloc_data));
+        pointers.push_back(ret);
+
+        return ret;
     }
     
     void GraphicsAllocator::free(void* ptr)
     {
-        //GraphicsAllocatorData* data = (GraphicsAllocatorData*)(ptr);
         auto* data = extractData(ptr);
 
 #ifdef GDI_VULKAN
@@ -125,11 +124,8 @@ namespace cpp2d::Buffers
         vmaDestroyBuffer(allocator, buffer, allocation);
 #endif
 
-        //data->buffer     = nullptr;
-        //data->allocation = nullptr;
-        //data->data       = nullptr;
-        std::free(
-            (void*)data
+        pointers.erase(
+            std::find(pointers.begin(), pointers.end(), ptr)
         );
     }
 }
