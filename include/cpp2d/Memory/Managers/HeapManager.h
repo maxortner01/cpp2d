@@ -6,7 +6,7 @@
 namespace cpp2d::Memory
 {
     class HeapManager :
-        public Memory::Manager<HeapManager, HeapAllocator>
+        public Memory::Manager<HeapManager>
     {
     public:
         AddrDist offset(void* const * ptr) const override;

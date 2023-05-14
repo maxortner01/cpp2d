@@ -90,16 +90,14 @@ namespace cpp2d
             }
         }
 
-        // Need to rework this... A vertex array needs types Vertex and Other to be contiguous while
-        // index is either first or last in memory.
-        // There is only one vkBuffer here, so i need to stop all this collection of buffers thing
-        // instead i need to find the offset of the first index section, and the offset of the first
-        // index section... Then pass the regular buffer into both and the count of vertex/other buffers
-        // as well as relevant offsets
-        // ...
+        // Not sure how to remove binding here unless each buffer type has its own allocation...
+        // Maybe, we have an attribute buffer that is templated to a type that represents
+        // the objects inside it. Then maybe we request an allocation for this specific type
+        // ... yeah, I like that...
+        // This way we can be sure that when we draw a vertex array the data inside is all of one type
+        // Mesh data would end up all together... index data would all be togther... this way (for basic
+        // mesh data) we have only two bind calls
 
-        // just kidding we need to store a list of offsets for each vertex/other buffer
-        //auto allocatordata = (Buffers::GraphicsAllocatorData*)(VertexArrayMemoryManager::get().getHeapData());
         const void* _heap = VertexArrayMemoryManager::get().getHeap();
         auto* allocatordata = Buffers::GraphicsAllocator::get().extractData(_heap);
         auto buffer = static_cast<VkBuffer>(allocatordata->buffer);

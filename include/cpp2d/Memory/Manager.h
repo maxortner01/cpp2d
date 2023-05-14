@@ -8,7 +8,7 @@ namespace cpp2d::Memory
     // There *should* be a singleton instance for each instance class put into this
     // but the Singleton::get() returns the _ChildClass. This way we fake instantiation
     // Lets see if this works before philosophizing...
-    template<class _ChildClass, class _Allocator>
+    template<class _ChildClass>
     struct Manager :
         public Utility::Singleton<_ChildClass>
     {
@@ -22,8 +22,8 @@ namespace cpp2d::Memory
         void* _heap;
     };
 
-    template<class _ChildClass, class _Allocator>
-    const void* Manager<_ChildClass, _Allocator>::getHeap() const
+    template<class _ChildClass>
+    const void* Manager<_ChildClass>::getHeap() const
     {
         return _heap;
     }
