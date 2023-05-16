@@ -37,10 +37,14 @@ namespace cpp2d::Buffers
 
         void* allocate(CU32& bytes) override;
         void free(void* ptr) override;
+
+        inline static CU32 HEADER_SIZE = sizeof(U32) * 2 + sizeof(GraphicsAllocatorData);
     };
 
     //template<typename T>
     //using GraphicsStackManager = Memory::StackManager<GraphicsAllocator, Memory::HeapManager, T>;
+    using BaseGraphicsStackManager = Memory::StackManager<GraphicsAllocator, Memory::FrameManager<Memory::HeapAllocator>>;
+
     template<typename T>
-    using GraphicsStackManager = Memory::StackManager<GraphicsAllocator, Memory::FrameManager<Memory::HeapAllocator>, T>;
+    using GraphicsStackManager = Memory::StackManager<BaseGraphicsStackManager, Memory::FrameManager<Memory::HeapAllocator>, T>;
 }

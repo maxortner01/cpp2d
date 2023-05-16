@@ -40,6 +40,8 @@ namespace cpp2d::Memory
     public:
         friend class Utility::Singleton<StackManager<_Allocator, _SubManager, _InstanceClass>>;
 
+        typedef _Allocator Allocator;
+
         /**
          * @brief Calculates the offset of a memory address from the start of the stack.
          *
