@@ -9,26 +9,29 @@ namespace cpp2d::Memory
         public Memory::Manager<HeapManager>
     {
     public:
-        AddrDist offset(void* const * ptr) const override;
-        void request(void** ptr, CU32& bytes) override;
-        void release(void** ptr) override;
+        AddrDist offset(const void* ptr) const override;
+        void request(ManagedAllocation* ptr, CU32& bytes) override;
+        void release(ManagedAllocation* ptr) override;
     };
 
-    AddrDist HeapManager::offset(void* const* ptr) const
+    AddrDist HeapManager::offset(const void* ptr) const
     {
         return 0;
     }
 
-    void HeapManager::request(void** ptr, CU32& bytes)
+    void HeapManager::request(ManagedAllocation* ptr, CU32& bytes)
     {
         HeapAllocator& allocator = HeapAllocator::get();
-        *ptr = allocator.allocate(bytes);
+
+        ptr->setPointer(
+            allocator.allocate(bytes), bytes
+        );
     }
 
-    void HeapManager::release(void** ptr) 
+    void HeapManager::release(ManagedAllocation* ptr) 
     {
         HeapAllocator& allocator = HeapAllocator::get();
-        allocator.free(*ptr);
-        *ptr = nullptr;
+        allocator.free(ptr->getPointer());
+        ptr->setPointer(nullptr, 0);
     }
 }

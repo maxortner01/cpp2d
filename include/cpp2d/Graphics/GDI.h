@@ -35,7 +35,6 @@ namespace cpp2d::Graphics
     class CPP2D_DLL GDI :
         public Utility::Singleton<GDI>,
         public Utility::State<GDIState>,
-        public Utility::NoCopy,
         public GDILifetime
     {
         struct 

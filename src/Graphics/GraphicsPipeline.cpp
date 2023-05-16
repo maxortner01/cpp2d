@@ -9,9 +9,9 @@
 namespace cpp2d
 {
 
-    void GraphicsPipeline::_set_push_constants(const Graphics::FrameData* frame_data, const void* data)
+    void GraphicsPipeline::_set_push_constants(const Graphics::FrameObject<Graphics::FrameData>& frame_data, const void* data)
     {
-        auto command_buffer = static_cast<VkCommandBuffer>(frame_data->command_buffer);
+        auto command_buffer = static_cast<VkCommandBuffer>(frame_data.object().command_buffer);
         auto layout         = static_cast<VkPipelineLayout>(_pipeline.layout);
 
         vkCmdPushConstants(command_buffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, _push_constants_size, data);
@@ -67,10 +67,10 @@ namespace cpp2d
         return true;
     }
 
-    void GraphicsPipeline::bind(const Graphics::FrameData* frameData)
+    void GraphicsPipeline::bind(const Graphics::FrameObject<Graphics::FrameData>& frameData)
     {
 #   ifdef GDI_VULKAN
-        VkCommandBuffer command_buffer = static_cast<VkCommandBuffer>(frameData->command_buffer);
+        VkCommandBuffer command_buffer = static_cast<VkCommandBuffer>(frameData.object().command_buffer);
 
         vkCmdBindPipeline(
             command_buffer,

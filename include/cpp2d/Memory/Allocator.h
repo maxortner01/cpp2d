@@ -9,7 +9,6 @@ namespace cpp2d::Memory
     // type of base class put here
     template<typename _ChildClass>
     struct Allocator :
-        public Utility::NoCopy,
         public Utility::Singleton<_ChildClass>
     {
         virtual void* allocate(CU32&) = 0;

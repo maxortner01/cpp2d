@@ -19,8 +19,8 @@ namespace cpp2d
 
         void display() const override;
 
-        Graphics::FrameData* beginFrame();
-        void endFrame(const Graphics::FrameData* frameData);
+        Graphics::FrameObject<Graphics::FrameData> beginFrame();
+        void endFrame(const Graphics::FrameObject<Graphics::FrameData>& frameData);
 
         Graphics::SurfaceHandle getSurfaceHandle() const;
     };

@@ -27,10 +27,9 @@ namespace cpp2d::Buffers
     };
 
     template<typename _MemManager>
-    class AttributeBuffer :
-        public Utility::NoCopy
+    class AttributeBuffer
     {
-        void* _data;
+        Memory::ManagedAllocation _data;
         U32   _allocated_size;
 
         Binding _binding;
@@ -56,14 +55,13 @@ namespace cpp2d::Buffers
     // Implementation
     template<typename _MemManager>
     AttributeBuffer<_MemManager>::AttributeBuffer() :
-        _data(nullptr),
         _allocated_size(0)
     {   }
 
     template<typename _MemManager>
     AttributeBuffer<_MemManager>::~AttributeBuffer()
     {
-        if (_data)
+        if (_data.getPointer())
         {
             _MemManager& allocator = _MemManager::get();
             allocator.release(&_data);
@@ -80,7 +78,7 @@ namespace cpp2d::Buffers
     AddrDist AttributeBuffer<_MemManager>::offset() const
     {
         _MemManager& allocator = _MemManager::get();
-        return allocator.offset(&_data);
+        return allocator.offset(_data.getPointer());
     }
 
     template<typename _MemManager>
@@ -102,14 +100,14 @@ namespace cpp2d::Buffers
 
         if (bytes > _allocated_size || !data)
         {
-            if (bytes > _allocated_size && _data)
+            if (bytes > _allocated_size && _data.getPointer())
                 allocator.release(&_data);
 
             allocator.request(&_data, bytes);
             _allocated_size = bytes;
         }
 
-        std::memcpy(_data, data, bytes);
+        std::memcpy(_data.getPointer(), data, bytes);
     }
 
     template<typename _MemManager>

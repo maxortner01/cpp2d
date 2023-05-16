@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NoCopy.h"
 #include <cassert>
 
 namespace cpp2d::Utility
@@ -14,7 +15,8 @@ namespace cpp2d::Utility
      * @tparam T The type of object that will be made into a singleton.
      */
     template<typename T>
-    class Singleton
+    class Singleton :
+        public Utility::NoCopy
     {
     public:
         /**

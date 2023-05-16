@@ -3,6 +3,7 @@
 #include "../Util.h"
 #include "Sizable.h"
 #include "GDILifetime.h"
+#include "../Memory.h"
 
 namespace cpp2d::Graphics
 {
@@ -34,6 +35,9 @@ namespace cpp2d::Graphics
     {
         CommandBufferHandle command_buffer;
     };
+
+    template<typename _Object>
+    using FrameObject = Memory::ManagedObject<_Object, Memory::FrameManager<Memory::HeapAllocator>>;
 
     /**
      * @brief Encapsulates a surface to render onto.
@@ -77,7 +81,7 @@ namespace cpp2d::Graphics
          * 
          * Begins render pass on the current frame. *Does not* attempt to wait on fences.
          */
-        FrameData* startRenderPass();
+        FrameObject<FrameData> startRenderPass();
 
         /**
          * @brief Ends the render pass.
@@ -85,7 +89,7 @@ namespace cpp2d::Graphics
          * Ends render pass on the current frame and submits the command buffer of the current frame
          * to the graphics queue.
          */
-        void endRenderPass(const FrameData* frameData);
+        void endRenderPass(const FrameObject<FrameData>& frameData);
 
         Frame& getFrame() const;
         
