@@ -7,15 +7,15 @@
 
 namespace cpp2d::Graphics
 {
-    Frame::Frame(Surface* parent)
+    Frame::Frame(Graphics::GDI& gdi, Surface* parent)
     {
-        command_pool = GDI::get().createCommandPool(this);
-        command_buffers.handle = GDI::get().createCommandBuffer(command_pool.handle);
+        command_pool = gdi.createCommandPool(this);
+        command_buffers.handle = gdi.createCommandBuffer(command_pool.handle);
         command_buffers.active = false;
 
-        sync_objects.image_avaliable = GDI::get().createSemaphore(this);
-        sync_objects.render_finished = GDI::get().createSemaphore(this);
-        sync_objects.in_flight = GDI::get().createFence(this);
+        sync_objects.image_avaliable = gdi.createSemaphore(this);
+        sync_objects.render_finished = gdi.createSemaphore(this);
+        sync_objects.in_flight = gdi.createFence(this);
     }
 
     Frame::~Frame()
@@ -31,7 +31,7 @@ namespace cpp2d::Graphics
         vkResetFences(device, 1, &fence);
     }
 
-    Surface::Surface(const Vec2u& extent) :
+    Surface::Surface(Graphics::GDI& gdi, const Vec2u& extent) :
         Sizable(extent),
         _frames(nullptr),
         _image_count(0),
@@ -58,7 +58,7 @@ namespace cpp2d::Graphics
         }
     }
 
-    void Surface::create(const Vec2u& extent, const SwapChainInfo& swapchain)
+    void Surface::create(Graphics::GDI& gdi, const Vec2u& extent, const SwapChainInfo& swapchain)
     {
         setExtent(extent);
 
@@ -67,21 +67,21 @@ namespace cpp2d::Graphics
         _framebuffers = (FrameImage*)std::malloc(sizeof(FrameImage) * swapchain.image_count);
 
         _format = swapchain.format;
-        _render_pass = Graphics::GDI::get().createRenderPass(this);
+        _render_pass = gdi.createRenderPass(this);
 
         _frames = (Frame*)std::malloc(sizeof(Frame) * _OVERLAP);
         _image_count = swapchain.image_count;
         for (U32 i = 0; i < swapchain.image_count; i++)
         {
             if (i < _OVERLAP)
-                new(reinterpret_cast<void*>(&_frames[i])) Frame(this);
+                new(reinterpret_cast<void*>(&_frames[i])) Frame(gdi, this);
 
             _framebuffers[i].image = swapchain.images[i];
-            _framebuffers[i].framebuffer = GDI::get().createFramebuffer(swapchain.images[i].image_view, this, this);
+            _framebuffers[i].framebuffer = gdi.createFramebuffer(swapchain.images[i].image_view, this, this);
         }
     }
 
-    void Surface::create(const Vec2u& extent)
+    void Surface::create(Graphics::GDI& gdi, const Vec2u& extent)
     {
         setExtent(extent);
 
@@ -89,10 +89,10 @@ namespace cpp2d::Graphics
         //assert(!_frames);
     }
 
-    Graphics::FrameObject<FrameData> Surface::startRenderPass()
+    Memory::ManagedObject<FrameData> Surface::startRenderPass(Graphics::GDI& gdi, Memory::Manager* manager)
     {
 #   ifdef GDI_VULKAN
-        Memory::FrameManager<Memory::HeapAllocator>::get().resetWrite();
+        //Memory::FrameManager<Memory::HeapAllocator>::get().resetWrite();
 
         Frame&   frame  = getFrame();
         VkDevice device = static_cast<VkDevice>(frame.command_pool.device); 
@@ -112,7 +112,7 @@ namespace cpp2d::Graphics
         if (result != VK_SUCCESS)
         {
             cpp2dERROR("Error beginning command buffer (%i).", result);
-            return FrameObject<FrameData>();
+            return Memory::ManagedObject<FrameData>(manager);
         }
         frame.command_buffers.active = true;
 
@@ -149,19 +149,21 @@ namespace cpp2d::Graphics
         vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 #   endif
 
-        FrameObject<FrameData> data;
+        Memory::ManagedObject<FrameData> data(manager);
         //Memory::FrameManager<Memory::HeapAllocator>::get().request((void**)&data, sizeof(FrameData));
         data.object().command_buffer = frame.command_buffers.handle; 
+        data.object().gdi            = &gdi;
 
         return data;
     }
 
-    void Surface::endRenderPass(const FrameObject<FrameData>& frameData)
+    void Surface::endRenderPass(const Memory::ManagedObject<FrameData>& frameData)
     {
 #   ifdef GDI_VULKAN
         const U32 index = 0;
         Frame& frame = getFrame();
         VkCommandBuffer command_buffer = static_cast<VkCommandBuffer>(frameData.object().command_buffer);
+        Graphics::GDI*  gdi = frameData.object().gdi;
 
         vkCmdEndRenderPass(command_buffer);
         VkResult result = vkEndCommandBuffer(command_buffer);
@@ -198,10 +200,10 @@ namespace cpp2d::Graphics
         VkQueue queue;
         const VkFence  fence  = static_cast<VkFence>(frame.sync_objects.in_flight);
         const VkDevice device = static_cast<VkDevice>(frame.command_pool.device);
-        const GDILogicDevice logic_device   = GDI::get().getLogicDevice(frame.command_pool.device);
-        const GDIPhysicalDevice phys_device = GDI::get().getPhysicalDevice(logic_device.physical_device_index);
+        const GDILogicDevice logic_device   = gdi->getLogicDevice(frame.command_pool.device);
+        const GDIPhysicalDevice phys_device = gdi->getPhysicalDevice(logic_device.physical_device_index);
         //const QueueIndices   queue_indices  = GDI::get().getQueueIndices(phys_device);
-        const U32 graphics_queue = GDI::get().getCurrentLogicDevice().graphics_queue;
+        const U32 graphics_queue = gdi->getCurrentLogicDevice().graphics_queue;
         vkGetDeviceQueue(device, graphics_queue, 0, &queue);
 
         result = vkQueueSubmit(

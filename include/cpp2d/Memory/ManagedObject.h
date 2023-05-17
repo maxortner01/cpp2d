@@ -4,59 +4,57 @@
 
 namespace cpp2d::Memory
 {
-    template<class _Object, class _Manager>
+    template<class _Object>
     class ManagedObject
     {
-        ManagedAllocation allocation;
+        Memory::Manager* const _manager;
+        ManagedAllocation _allocation;
 
     public:
         template<typename... Args>
-        ManagedObject(Args... args);
+        ManagedObject(Memory::Manager* manager, Args... args);
 
         // Take the new manager and create a new allocation,
         // then we want to copy the memory directory over
         //template<typename _OtherManager>
-        ManagedObject(const ManagedObject<_Object, _Manager>& object);
+        ManagedObject(const ManagedObject<_Object>& object);
 
         virtual ~ManagedObject();
 
         _Object& object() const;
     };
 
-    template<class _Object, class _Manager>
+    template<class _Object>
     template<typename... Args>
-    ManagedObject<_Object, _Manager>::ManagedObject(Args... args)
+    ManagedObject<_Object>::ManagedObject(Memory::Manager* manager, Args... args) : 
+        _manager(manager),
+        _allocation(manager)
     {
-        static_assert(std::is_base_of<Manager<_Manager>, _Manager>::value);
-        _Manager& manager = _Manager::get();
-
         // Get the pointer for the new object an initialize the object at
         // that address
-        manager.request(&allocation, sizeof(_Object));
-        new(allocation.getPointer()) _Object(args...);
+        _manager->request(&_allocation, sizeof(_Object));
+        new(_allocation.getPointer()) _Object(args...);
     }
 
-    template<class _Object, class _Manager>
+    template<class _Object>
     //template<typename _OtherManager>
-    ManagedObject<_Object, _Manager>::ManagedObject(const ManagedObject<_Object, _Manager>& object)
+    ManagedObject<_Object>::ManagedObject(const ManagedObject<_Object>& object) :
+        _manager(object._manager),
+        _allocation(object._manager)
     {
-        static_assert(std::is_base_of<Manager<_Manager>, _Manager>::value);
-        _Manager& manager = _Manager::get();
-
-        manager.request(&allocation, sizeof(_Object));
-        std::memcpy(allocation.getPointer(), object.allocation.getPointer(), sizeof(_Object));
+        _manager->request(&_allocation, sizeof(_Object));
+        std::memcpy(_allocation.getPointer(), object._allocation.getPointer(), sizeof(_Object));
     }
 
-    template<class _Object, class _Manager>
-    ManagedObject<_Object, _Manager>::~ManagedObject()
+    template<class _Object>
+    ManagedObject<_Object>::~ManagedObject()
     {
-        _Manager& manager = _Manager::get();
-        manager.release(&allocation);
+        _manager->release(&_allocation);
     }   
 
-    template<class _Object, class _Manager>
-    _Object& ManagedObject<_Object, _Manager>::object() const
+    template<class _Object>
+    _Object& ManagedObject<_Object>::object() const
     {
-        return *(_Object*)allocation.getPointer();
+        return *(_Object*)_allocation.getPointer();
     }
 }

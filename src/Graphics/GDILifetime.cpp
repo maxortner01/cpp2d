@@ -167,7 +167,7 @@ namespace cpp2d::Graphics
                     cpp2dINFO("Destroying allocators.");
                     auto* gdi = object.arguments.get<Graphics::GDI*>();
 
-                    gdi->clearAllocations();
+                    //gdi->clearAllocations();
                 }
 
             }

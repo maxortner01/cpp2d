@@ -15,7 +15,7 @@ namespace cpp2d
         _type(type)
     {   }
 
-    void Shader::fromFile(const char* filename)
+    void Shader::fromFile(Graphics::GDI& gdi, const char* filename)
     {
         std::ifstream file(filename);
         assert(file);
@@ -25,10 +25,10 @@ namespace cpp2d
             (std::istreambuf_iterator<char>())
         );
 
-        fromString(content.c_str());
+        fromString(gdi, content.c_str());
     }
 
-    void Shader::fromString(const char* string)
+    void Shader::fromString(Graphics::GDI& gdi, const char* string)
     {
 #   ifdef USE_SHADERC_AND_VULKAN
         shaderc::Compiler compiler;
@@ -54,7 +54,7 @@ namespace cpp2d
 
         cpp2dINFO("Successfully compiled shader from GLSL code.");
 
-        fromBytes(compiling.begin(), std::distance(compiling.begin(), compiling.end()));
+        fromBytes(gdi, compiling.begin(), std::distance(compiling.begin(), compiling.end()));
 #   endif
 
 #   if !defined(USE_SHADERC) && defined(GDI_VULKAN)
@@ -62,9 +62,9 @@ namespace cpp2d
 #   endif
     }
 
-    void Shader::fromBytes(const U32* contents, U32 count)
+    void Shader::fromBytes(Graphics::GDI& gdi, const U32* contents, U32 count)
     {
-        _handle = Graphics::GDI::get().createShader(contents, count);
+        _handle = gdi.createShader(contents, count);
         
         if (!_handle)
             setState(ShaderState::CreationError);

@@ -8,10 +8,8 @@
 namespace cpp2d::Buffers
 {
 
-    GraphicsAllocator::GraphicsAllocator()
+    GraphicsAllocator::GraphicsAllocator(Graphics::GDI& gdi)
     {   
-        auto& gdi = Graphics::GDI::get();
-
         VmaAllocator allocator;
         VmaAllocatorCreateInfo allocator_create {
             .physicalDevice = static_cast<VkPhysicalDevice>(gdi.getSuitablePhysicalDevice()),
@@ -27,7 +25,7 @@ namespace cpp2d::Buffers
             _allocator = static_cast<Graphics::AllocatorHandle>(allocator);
 
         // register the allocator with the gdi
-        Graphics::GDI::get().registerAllocator(this);
+        //gdi.registerAllocator(this);
     }
 
     GraphicsAllocator::~GraphicsAllocator()
@@ -42,6 +40,7 @@ namespace cpp2d::Buffers
         vmaDestroyAllocator(static_cast<VmaAllocator>(_allocator));
     }
 
+    /*
     GraphicsAllocatorData* GraphicsAllocator::extractData(const void* ptr) const
     {
         assert(ptr);
@@ -51,25 +50,20 @@ namespace cpp2d::Buffers
         auto* data = (GraphicsAllocatorData*)((U8*)ptr - sizeof(U32) * 2 - data_size);
 
         return data;
-    }
+    }*/
 
     void* GraphicsAllocator::allocate(CU32& _bytes)
     {
         cpp2dINFO("Allocating %u bytes on the GPU.", _bytes);
-        struct 
-        {
-            GraphicsAllocatorData data{0};
-            U32 size;
-            U32 bytes;
-        } alloc_data;
+        AllocationHeader alloc_data;
 
-        alloc_data.size  = sizeof(GraphicsAllocatorData);
-        alloc_data.bytes = _bytes;
+        alloc_data.data_size  = sizeof(GraphicsAllocatorData);
+        alloc_data.heap_size = _bytes;
 
 #   ifdef GDI_VULKAN
         VkBufferCreateInfo buffer_create {
             .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .size  = _bytes + sizeof(alloc_data),
+            .size  = _bytes + GraphicsAllocator::HeaderBytes,
             .usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
         };
 
@@ -103,10 +97,10 @@ namespace cpp2d::Buffers
 
         void* data;
         vmaMapMemory(allocator, _allocation, &data);
-        std::memcpy(data, &alloc_data, sizeof(alloc_data));
+        std::memcpy(data, &alloc_data, GraphicsAllocator::HeaderBytes);
 #   endif
 
-        void* ret = (void*)((U8*)data + sizeof(alloc_data));
+        void* ret = (void*)((U8*)data + GraphicsAllocator::HeaderBytes);
         pointers.push_back(ret);
 
         return ret;
@@ -117,9 +111,9 @@ namespace cpp2d::Buffers
         auto* data = extractData(ptr);
 
 #ifdef GDI_VULKAN
-        VkBuffer      buffer     = static_cast<VkBuffer>     (data->buffer);
+        VkBuffer      buffer     = static_cast<VkBuffer>     (data->data.buffer);
         VmaAllocator  allocator  = static_cast<VmaAllocator> (_allocator);
-        VmaAllocation allocation = static_cast<VmaAllocation>(data->allocation);
+        VmaAllocation allocation = static_cast<VmaAllocation>(data->data.allocation);
         vmaUnmapMemory(allocator, allocation);
         vmaDestroyBuffer(allocator, buffer, allocation);
 #endif

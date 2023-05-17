@@ -44,12 +44,17 @@ namespace cpp2d::Buffers
         const std::vector<Attribute>& getAttributes() const;
     };  
 
-    class MutableBuffer
+    class MutableBuffer :
+        public Utility::NoCopy
     {
     protected:
+        Memory::Manager* const    _manager;
         Memory::ManagedAllocation _data;
 
     public:
+        MutableBuffer(Memory::Manager* manager);
+        virtual ~MutableBuffer();
+
         U32      getAllocatedSize() const;
 
         virtual AddrDist getManagerOffset() const { return 0; }
@@ -61,19 +66,19 @@ namespace cpp2d::Buffers
     struct BufferArrayInstance :
         public AttributeBuffer,
         public MutableBuffer
-    {   };
+    {   
+        using MutableBuffer::MutableBuffer;
+    };
 
-    template<typename _Object, typename _MemManager>
+    template<typename _Object>
     class TypeBuffer :
-        public BufferArrayInstance
+        public BufferArrayInstance,
+        public Utility::NoCopy
     {
     public:
-        typedef _MemManager MemoryManager;
+        static void bind(const Memory::ManagedObject<Graphics::FrameData>* frameData);
 
-        static void bind(const Graphics::FrameObject<Graphics::FrameData>* frameData);
-
-        TypeBuffer();
-        ~TypeBuffer();
+        TypeBuffer(Memory::Manager* manager);
 
         AddrDist getManagerOffset() const override;
         AddrDist offset() const override;
@@ -81,17 +86,15 @@ namespace cpp2d::Buffers
         void setData(const void* data, CU32& bytes) override;
     };
 
-    template<typename _MemManager>
-    class TypeBuffer<U32, _MemManager> :
-        public BufferArrayInstance
+    template<>
+    class TypeBuffer<U32> :
+        public BufferArrayInstance,
+        public Utility::NoCopy
     {
     public:
-        typedef _MemManager MemoryManager;
+        static void bind(const Memory::ManagedObject<Graphics::FrameData>* frameData);
 
-        static void bind(const Graphics::FrameObject<Graphics::FrameData>* frameData);
-
-        TypeBuffer();
-        ~TypeBuffer();
+        TypeBuffer(Memory::Manager* manager);
 
         AddrDist getManagerOffset() const override;
         AddrDist offset() const override;
@@ -120,116 +123,91 @@ namespace cpp2d::Buffers
 
     const std::vector<Attribute>& AttributeBuffer::getAttributes() const
     { return _attributes; }
+
+    MutableBuffer::MutableBuffer(Memory::Manager* manager) :
+        _manager(manager),
+        _data(manager)
+    {   }
+
+    MutableBuffer::~MutableBuffer()
+    {
+        _manager->release(&_data);
+    }
     
     U32 MutableBuffer::getAllocatedSize() const
     { return _data.getSize(); }
 
-    template<typename _Object, typename _MemManager>
-    void TypeBuffer<_Object, _MemManager>::bind(const Graphics::FrameObject<Graphics::FrameData>* frameData)
+    template<typename _Object>
+    void TypeBuffer<_Object>::bind(const Memory::ManagedObject<Graphics::FrameData>* frameData)
     {
         // call vulkan bind
     }
 
-    template<typename _MemManager>
-    void TypeBuffer<U32, _MemManager>::bind(const Graphics::FrameObject<Graphics::FrameData>* frameData)
+    void TypeBuffer<U32>::bind(const Memory::ManagedObject<Graphics::FrameData>* frameData)
     {
         // call vulkan bind
     }
 
-    template<typename _Object, typename _MemManager>
-    TypeBuffer<_Object, _MemManager>::TypeBuffer()
-    {   
-        static_assert(std::is_base_of<Memory::Manager<_MemManager>, _MemManager>::value);
-    }
+    template<typename _Object>
+    TypeBuffer<_Object>::TypeBuffer(Memory::Manager* manager) :
+        BufferArrayInstance(manager)
+    {   }
 
-    template<typename _MemManager>
-    TypeBuffer<U32, _MemManager>::TypeBuffer()
+    TypeBuffer<U32>::TypeBuffer(Memory::Manager* manager) :
+        BufferArrayInstance(manager)
     {   
-        static_assert(std::is_base_of<Memory::Manager<_MemManager>, _MemManager>::value);
-
         setBinding(Binding {
             .index = 0,
             .stride = sizeof(U32)
         });
     }
 
-    template<typename _Object, typename _MemManager>
-    TypeBuffer<_Object, _MemManager>::~TypeBuffer()
+    template<typename _Object>
+    AddrDist TypeBuffer<_Object>::getManagerOffset() const
     {
-        if (_data.getPointer())
-        {
-            _MemManager& manager = _MemManager::get();
-            manager.release(&_data);
-        }
-    }
-
-    template<typename _MemManager>
-    TypeBuffer<U32, _MemManager>::~TypeBuffer()
-    {
-        if (_data.getPointer())
-        {
-            _MemManager& manager = _MemManager::get();
-            manager.release(&_data);
-        }
-    }
-
-    template<typename _Object, typename _MemManager>
-    AddrDist TypeBuffer<_Object, _MemManager>::getManagerOffset() const
-    {
-        _MemManager& allocator = _MemManager::get();
         //return allocator.offset(_data.getPointer());
-        return _MemManager::Allocator::get().offset(allocator.getHeap());
+        //return _MemManager::Allocator::get().offset(allocator.getHeap()); // <-------------------------
+        return _manager->getHeapOffset();
     }
 
-    template<typename _MemManager>
-    AddrDist TypeBuffer<U32, _MemManager>::getManagerOffset() const
+    AddrDist TypeBuffer<U32>::getManagerOffset() const
     {
-        _MemManager& allocator = _MemManager::get();
-        return _MemManager::Allocator::get().offset(allocator.getHeap());
+        return _manager->getHeapOffset();
     }
     
-    template<typename _Object, typename _MemManager>
-    AddrDist TypeBuffer<_Object, _MemManager>::offset() const
+    template<typename _Object>
+    AddrDist TypeBuffer<_Object>::offset() const
     {
-        _MemManager& allocator = _MemManager::get();
-        //return allocator.offset(_data.getPointer());
-        return _MemManager::Allocator::get().offset(allocator.getHeap()) + allocator.offset(_data.getPointer());
+        return getManagerOffset() + _manager->offset(_data.getPointer());
     }
 
-    template<typename _MemManager>
-    AddrDist TypeBuffer<U32, _MemManager>::offset() const
+    AddrDist TypeBuffer<U32>::offset() const
     {
-        _MemManager& allocator = _MemManager::get();
-        return _MemManager::Allocator::get().offset(allocator.getHeap()) + allocator.offset(_data.getPointer());
+        return getManagerOffset() + _manager->offset(_data.getPointer());
     }
     
-    template<typename _Object, typename _MemManager>
-    void TypeBuffer<_Object, _MemManager>::setData(const void* data, CU32& bytes)
+    template<typename _Object>
+    void TypeBuffer<_Object>::setData(const void* data, CU32& bytes)
     {
-        _MemManager& allocator = _MemManager::get();
-
         if (bytes > getAllocatedSize() || !_data.getPointer())
         {
             if (bytes > getAllocatedSize() && _data.getPointer())
-                allocator.release(&_data);
+                _manager->release(&_data);
 
-            allocator.request(&_data, bytes);
+            _manager->request(&_data, bytes);
         }
 
         std::memcpy(_data.getPointer(), data, bytes);
     }
 
-    template<typename _MemManager>
-    void TypeBuffer<U32, _MemManager>::setData(const void* data, CU32& bytes)
+    void TypeBuffer<U32>::setData(const void* data, CU32& bytes)
     {
-        _MemManager& allocator = _MemManager::get();
-
-        if (bytes > getAllocatedSize() || !data)
+        if (bytes > getAllocatedSize() || !_data.getPointer())
         {
             if (bytes > getAllocatedSize() && _data.getPointer())
-                allocator.release(&_data);
+                _manager->release(&_data);
 
-            allocator.request(&_data, bytes);
+            _manager->request(&_data, bytes);
         }
 
         std::memcpy(_data.getPointer(), data, bytes);

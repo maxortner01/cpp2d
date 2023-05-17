@@ -21,30 +21,32 @@ namespace cpp2d::Buffers
         Graphics::AllocationHandle allocation;
     };
 
+    struct AllocationHeader
+    {
+        GraphicsAllocatorData data;
+        U32 data_size;
+        U32 heap_size;
+    };
+
     class CPP2D_DLL GraphicsAllocator :
-        public Memory::Allocator<GraphicsAllocator>
+        public Memory::AllocatorHeader<AllocationHeader>
     {   
         Graphics::AllocatorHandle _allocator;
 
         std::vector<void*> pointers;
 
-        GraphicsAllocator();
-        ~GraphicsAllocator();
     public:
-        friend class Singleton<GraphicsAllocator>;
-
-        GraphicsAllocatorData* extractData(const void* ptr) const;
+        GraphicsAllocator(Graphics::GDI& gdi);
+        ~GraphicsAllocator();
 
         void* allocate(CU32& bytes) override;
         void free(void* ptr) override;
-
-        inline static CU32 HEADER_SIZE = sizeof(U32) * 2 + sizeof(GraphicsAllocatorData);
     };
 
     //template<typename T>
     //using GraphicsStackManager = Memory::StackManager<GraphicsAllocator, Memory::HeapManager, T>;
-    using BaseGraphicsStackManager = Memory::StackManager<GraphicsAllocator, Memory::FrameManager<Memory::HeapAllocator>, Memory::BaseStack>;
+    //using BaseGraphicsStackManager = Memory::StackManager<GraphicsAllocator, Memory::FrameManager<Memory::HeapAllocator>, Memory::BaseStack>;
 
-    template<typename T>
-    using GraphicsStackManager = Memory::StackManager<BaseGraphicsStackManager, Memory::FrameManager<Memory::HeapAllocator>, T>;
+    //template<typename T>
+    //using GraphicsStackManager = Memory::StackManager<BaseGraphicsStackManager, Memory::FrameManager<Memory::HeapAllocator>, T>;
 }

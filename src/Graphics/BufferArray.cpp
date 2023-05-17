@@ -6,8 +6,9 @@
 
 namespace cpp2d
 {
-    BufferArray::BufferArray(const std::initializer_list<BufferType>& bufferTypes) :
-        _types((BufferType*)std::malloc(sizeof(BufferType) * bufferTypes.size()))
+    BufferArray::BufferArray(Memory::Manager* manager, const std::initializer_list<BufferType>& bufferTypes) :
+        _types((BufferType*)std::malloc(sizeof(BufferType) * bufferTypes.size())),
+        _manager(manager)
     {
         std::memcpy(_types, bufferTypes.begin(), sizeof(BufferType) * bufferTypes.size());
     }
@@ -46,7 +47,7 @@ namespace cpp2d
         return frame;
     }
 
-    void BufferArray::bind(const Graphics::FrameObject<Graphics::FrameData>& frameData)
+    void BufferArray::bind(const Memory::ManagedObject<Graphics::FrameData>& frameData, Memory::StackManager* baseStackManager)
     {
         auto attributes = getAttributeFrame();
         auto command_buffer = static_cast<VkCommandBuffer>(frameData.object().command_buffer);
@@ -57,10 +58,10 @@ namespace cpp2d
         for (U32 i = 0; i < _buffers.size(); i++)
         {
             if (_types[i] == BufferType::Index)
-                index_offset = _buffers[i]->getManagerOffset() + Buffers::GraphicsAllocator::HEADER_SIZE;
+                index_offset = _buffers[i]->getManagerOffset() + Buffers::GraphicsAllocator::HeaderBytes;
 
             if (_types[i] == BufferType::Vertex)
-                vertex_offset = _buffers[i]->getManagerOffset() + Buffers::GraphicsAllocator::HEADER_SIZE;
+                vertex_offset = _buffers[i]->getManagerOffset() + Buffers::GraphicsAllocator::HeaderBytes;
         }
 
         // Not sure how to remove binding here unless each buffer type has its own allocation...
@@ -72,9 +73,9 @@ namespace cpp2d
         // mesh data) we have only two bind calls
 
         // Pull the buffer/allocation info from the heap for binding
-        const void* _heap   = Buffers::BaseGraphicsStackManager::get().getHeap();
-        auto* allocatordata = Buffers::BaseGraphicsStackManager::Allocator::get().extractData(_heap);
-        auto buffer = static_cast<VkBuffer>(allocatordata->buffer);
+        const void* _heap   = baseStackManager->getHeap();
+        auto* allocatordata = reinterpret_cast<Memory::AllocatorHeader<Buffers::AllocationHeader>*>(baseStackManager->getAllocator())->extractData(_heap);
+        auto buffer = static_cast<VkBuffer>(allocatordata->data.buffer);
         if (index_offset != 0)
         {
             vkCmdBindIndexBuffer(
@@ -94,7 +95,7 @@ namespace cpp2d
         );
     }
 
-    void BufferArray::draw(const Graphics::FrameObject<Graphics::FrameData>& frameData)
+    void BufferArray::draw(const Memory::ManagedObject<Graphics::FrameData>& frameData)
     {
 #   ifdef GDI_VULKAN
         auto attributes = getAttributeFrame();

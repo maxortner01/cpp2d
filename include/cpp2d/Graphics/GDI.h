@@ -33,8 +33,8 @@ namespace cpp2d::Graphics
     };
 
     class CPP2D_DLL GDI :
-        public Utility::Singleton<GDI>,
         public Utility::State<GDIState>,
+        public Utility::NoCopy,
         public GDILifetime
     {
         struct 
@@ -57,11 +57,9 @@ namespace cpp2d::Graphics
         void _init();
         void _delete();
 
+    public:
         GDI();
         ~GDI();
-
-    public:
-        friend class Singleton<GDI>;
 
         U32 getPresentIndex(DrawWindow* surface);
         GDILogicDevice getLogicDevice();
@@ -89,16 +87,15 @@ namespace cpp2d::Graphics
         CommandPool  createCommandPool(GDILifetime* lifetime = nullptr);
         CommandBufferHandle createCommandBuffer(const CommandPoolHandle& commandPool);
 
-        void clearAllocations();
+        //void clearAllocations();
 
-        template<typename _Allocator>
-        void registerAllocator(_Allocator* allocator);
+        //template<typename _Allocator>
+        //void registerAllocator(_Allocator* allocator);
     };
 
-    template<typename _Allocator>
-    void GDI::registerAllocator(_Allocator* allocator)
-    {
-        static_assert(std::is_base_of<Memory::Allocator<_Allocator>, _Allocator>::value);
-        _allocator_destructors.push(allocator->destroy);
-    }
+    //template<typename _Allocator>
+    //void GDI::registerAllocator(_Allocator* allocator)
+    //{
+    //    _allocator_destructors.push(allocator->~_Allocator);
+    //}
 }

@@ -9,7 +9,7 @@
 namespace cpp2d
 {
 
-    void GraphicsPipeline::_set_push_constants(const Graphics::FrameObject<Graphics::FrameData>& frame_data, const void* data)
+    void GraphicsPipeline::_set_push_constants(const Memory::ManagedObject<Graphics::FrameData>& frame_data, const void* data)
     {
         auto command_buffer = static_cast<VkCommandBuffer>(frame_data.object().command_buffer);
         auto layout         = static_cast<VkPipelineLayout>(_pipeline.layout);
@@ -43,12 +43,12 @@ namespace cpp2d
         assert(SHADER_TYPE_NOT_IN_PIPELINE);
     }
 
-    void GraphicsPipeline::create()
+    void GraphicsPipeline::create(Graphics::GDI& gdi)
     {
         assert(shadersComplete());
         assert(getState() == GraphicsPipelineState::NotBuilt);
 
-        _pipeline = Graphics::GDI::get().createPipeline(
+        _pipeline = gdi.createPipeline(
             _shaders, _surface, _attributes, _push_constants_size
         );
 
@@ -67,7 +67,7 @@ namespace cpp2d
         return true;
     }
 
-    void GraphicsPipeline::bind(const Graphics::FrameObject<Graphics::FrameData>& frameData)
+    void GraphicsPipeline::bind(const Memory::ManagedObject<Graphics::FrameData>& frameData)
     {
 #   ifdef GDI_VULKAN
         VkCommandBuffer command_buffer = static_cast<VkCommandBuffer>(frameData.object().command_buffer);

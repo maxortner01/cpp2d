@@ -14,13 +14,13 @@ namespace cpp2d
         Graphics::SwapChainHandle _swapchain;
 
     public:
-        DrawWindow(CU32& width, CU32& height, const char* title);
+        DrawWindow(Graphics::GDI& gdi, CU32& width, CU32& height, const char* title);
         ~DrawWindow();
 
         void display() const override;
 
-        Graphics::FrameObject<Graphics::FrameData> beginFrame();
-        void endFrame(const Graphics::FrameObject<Graphics::FrameData>& frameData);
+        Memory::ManagedObject<Graphics::FrameData> beginFrame(Graphics::GDI& gdi, Memory::Manager* manager);
+        void endFrame(const Memory::ManagedObject<Graphics::FrameData>& frameData);
 
         Graphics::SurfaceHandle getSurfaceHandle() const;
     };

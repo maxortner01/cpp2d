@@ -28,9 +28,9 @@ namespace cpp2d
     public:
         Shader(const ShaderType& type);
 
-        void fromFile(const char* filename);
-        void fromString(const char* string);
-        void fromBytes(const U32* const contents, U32 count);
+        void fromFile  (Graphics::GDI& gdi, const char* filename);
+        void fromString(Graphics::GDI& gdi, const char* string);
+        void fromBytes (Graphics::GDI& gdi, const U32* const contents, U32 count);
 
         ShaderType getType() const;
         Graphics::ShaderHandle getHandle() const;

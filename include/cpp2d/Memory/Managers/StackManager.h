@@ -8,76 +8,30 @@
 
 namespace cpp2d::Memory
 {
-    enum class BaseStack {};
-
-    /**
-     * @class StackManager
-     * @brief Manages memory allocation and deallocation for a stack of objects.
-     *
-     * This class provides an interface for requesting and releasing memory from a stack, using the provided allocator.
-     *
-     * @tparam _Allocator The allocator to use for memory management.
-     * @tparam _InstanceClass The class to use as the base class for stack instances.
-     */
-    template<typename _Allocator, 
-             typename _SubManager = HeapManager, 
-             class    _InstanceClass = BaseStack>
     class StackManager :
-        public Manager<StackManager<_Allocator, _SubManager, _InstanceClass>>
+        public Manager
     {
+        void* const _sub_manager;
+
         U32   _allocated_size;
         void* _iterator;
 
         std::vector<U32>    _chunk_sizes;
         std::vector<ManagedAllocation*> _chunks;
 
-        StackManager();
+    public:
+        StackManager(void* memoryOwner, void* subManager, const MemoryOwner& ownerType);
         ~StackManager();
 
-        static constexpr bool IS_ALLOCATOR = std::is_base_of<Memory::Allocator<_Allocator>, _Allocator>::value;
-        static constexpr bool IS_MANAGER   = std::is_base_of<Memory::Manager<_Allocator>,   _Allocator>::value;
-
-    public:
-        friend class Utility::Singleton<StackManager<_Allocator, _SubManager, _InstanceClass>>;
-
-        typedef _Allocator Allocator;
-
-        /**
-         * @brief Calculates the offset of a memory address from the start of the stack.
-         *
-         * This method calculates the offset of the specified memory address from the start of the stack. The offset is returned as an AddrDist value.
-         *
-         * @param ptr A pointer to the memory address for which to calculate the offset.
-         * @return An AddrDist value representing the offset of the memory address from the start of the stack.
-         */
+        AddrDist getHeapOffset() const;
         AddrDist offset(const void* ptr) const override;
-
-        /**
-         * @brief Requests memory from the stack.
-         *
-         * This method is called to request memory from the stack, which will be a part of the memory allocated by the provided allocator.
-         *
-         * @param ptr A pointer to a pointer to the requested memory.
-         * @param bytes The size, in bytes, of the requested memory.
-         */
         void request(ManagedAllocation* ptr, CU32& bytes) override;
-
-        /**
-         * @brief Releases memory from the stack.
-         *
-         * This method is called to release memory that was previously allocated from the stack using the request method.
-         *
-         * @param ptr A pointer to a pointer to the memory to release.
-         */
         void release(ManagedAllocation* ptr) override;
 
         U32 bytesUsed() const;
-
         void print() const;
-
         void updateAllocations(void* newPtr, U32 size);
-
-        inline static void test(void* newptr, U32 size);
+        static void test(void* newptr, U32 size, void* instance);
     };
 
     /*
@@ -91,8 +45,47 @@ namespace cpp2d::Memory
         return (void*)((U8*)this->_heap + bytes);
     }*/
 
-    template<typename _Allocator, typename _SubManager, class _InstanceClass>
-    void StackManager<_Allocator, _SubManager, _InstanceClass>::updateAllocations(void* newptr, U32 size)
+#pragma region DEFINES
+
+#define ALLOCATE_HEAP(size)  \
+        switch (_owner_type) \
+        { \
+        case MemoryOwner::Allocator: \
+            { \
+                auto* allocator = reinterpret_cast<Allocator*>(_memory_owner); \
+                this->_heap.setPointer(allocator->allocate(size), size); \
+                break; \
+            } \
+         \
+        case MemoryOwner::Manager: \
+            { \
+                auto* manager = reinterpret_cast<Manager*>(_memory_owner); \
+                manager->request(&this->_heap, size); \
+                break; \
+            } \
+        } 
+
+#define FREE_HEAP  \
+        switch (_owner_type) \
+        { \
+        case MemoryOwner::Allocator: \
+            { \
+                auto* allocator = reinterpret_cast<Allocator*>(_memory_owner); \
+                allocator->free(this->_heap.getPointer()); \
+                break; \
+            } \
+         \
+        case MemoryOwner::Manager: \
+            { \
+                auto* manager = reinterpret_cast<Manager*>(_memory_owner); \
+                manager->release(&this->_heap); \
+                break; \
+            } \
+        } 
+
+#pragma endregion DEFINES
+
+    void StackManager::updateAllocations(void* newptr, U32 size)
     {
         _iterator = newptr;
         for (U32 i = 0; i < _chunks.size(); i++)
@@ -103,44 +96,65 @@ namespace cpp2d::Memory
         _allocated_size = size;
     }
 
-    template<typename _Allocator, typename _SubManager, class _InstanceClass>
-    void StackManager<_Allocator, _SubManager, _InstanceClass>::test(void* newPtr, U32 size)
+    void StackManager::test(void* newPtr, U32 size, void* instance)
     {
-        StackManager<_Allocator, _SubManager, _InstanceClass>::get().updateAllocations(newPtr, size);
+        auto* stack_instance = reinterpret_cast<StackManager*>(instance);
+        stack_instance->updateAllocations(newPtr, size);
     }
 
-    template<typename _Allocator, typename _SubManager, class _InstanceClass>
-    StackManager<_Allocator, _SubManager, _InstanceClass>::StackManager()
+    StackManager::StackManager(void* memoryOwner, void* subManager, const MemoryOwner& ownerType) :
+        Manager(memoryOwner, ownerType),
+        _sub_manager(subManager)
     {
-        // we require that the allocator is either a legit allocator 
-        // or a manager we get pointers from, but also that the submanager (which
-        // is used for the temporary copy storage) is also a manager
-        static_assert(IS_ALLOCATOR || IS_MANAGER && std::is_base_of<Memory::Manager<_SubManager>, _SubManager>::value);
+          
+        switch (_owner_type)
+        {
+        case MemoryOwner::Allocator:
+        {
+            auto* allocator = reinterpret_cast<Allocator*>(_memory_owner);
+            this->_heap.setPointer(allocator->allocate(SIZE), SIZE);
+            break;
+        }
 
-        _Allocator& allocator = _Allocator::get();
-        if constexpr (IS_ALLOCATOR) this->_heap.setPointer(allocator.allocate(SIZE), SIZE);
-        if constexpr (IS_MANAGER)   allocator.request(&this->_heap, SIZE);
-
-        this->_heap.setOnChanged(StackManager<_Allocator, _SubManager, _InstanceClass>::test);
+        case MemoryOwner::Manager:
+        {
+            auto* manager = reinterpret_cast<Manager*>(_memory_owner);
+            manager->request(&this->_heap, SIZE);
+            break;
+        }
+        }
+              
+        this->_heap.setOnChanged(StackManager::test);
 
         _allocated_size = SIZE;
         _iterator = this->_heap.getPointer();
     }
 
-    template<typename _Allocator, typename _SubManager, class _InstanceClass>
-    StackManager<_Allocator, _SubManager, _InstanceClass>::~StackManager()
+    StackManager::~StackManager()
     {
         if (this->_heap.getPointer())
         {
-            _Allocator& allocator = _Allocator::get();
-            if constexpr (IS_ALLOCATOR) allocator.free(this->_heap);
-            if constexpr (IS_MANAGER)   allocator.release(&this->_heap);
-            this->_heap.getPointer() = nullptr;
+            FREE_HEAP;            
+            this->_heap.setPointer(nullptr, 0);
+        }
+    }
+    
+    AddrDist StackManager::getHeapOffset() const
+    {
+        switch (_owner_type)
+        {
+            case MemoryOwner::Allocator:
+                return 0;
+                
+            case MemoryOwner::Manager:
+                {
+                    auto* manager = reinterpret_cast<Manager*>(_memory_owner);
+                    return manager->getHeapOffset() + manager->offset(this->_heap.getPointer());
+                }
         }
     }
 
-    template<typename _Allocator, typename _SubManager, class _InstanceClass>
-    AddrDist StackManager<_Allocator, _SubManager, _InstanceClass>::offset(const void* ptr) const
+    AddrDist StackManager::offset(const void* ptr) const
     {
         return (U8*)ptr - (U8*)(this->_heap.getPointer());
     }
@@ -157,44 +171,32 @@ namespace cpp2d::Memory
     //
     // Fixing this now... added the ManagedAllocation container struct
 
-    template<typename _Allocator, typename _SubManager, class _InstanceClass>
-    void StackManager<_Allocator, _SubManager, _InstanceClass>::request(ManagedAllocation* ptr, CU32& bytes) 
+    void StackManager::request(ManagedAllocation* ptr, CU32& bytes) 
     {
         void* next_iterator_pos = (void*)((char*)_iterator + bytes);
         if (offset(next_iterator_pos) >= _allocated_size)
         {
-            _Allocator& allocator = _Allocator::get();
+            auto* subManager = reinterpret_cast<Manager*>(_sub_manager);
 
             // reallocate
-            ManagedAllocation temp;
+            ManagedAllocation temp(subManager);
             CU32 bytes_to_copy = bytesUsed();
             if (bytes_to_copy)
             {
-                _SubManager& subManager = _SubManager::get();
-
-                subManager.request(&temp, bytes_to_copy);
+                subManager->request(&temp, bytes_to_copy);
                 std::memcpy(temp.getPointer(), this->_heap.getPointer(), bytes_to_copy);
             }
 
             CU32 new_size = (U32)(_allocated_size * 1.25) + bytes;
 
-            if constexpr (IS_ALLOCATOR) 
-            {
-                allocator.free(this->_heap.getPointer());
-                this->_heap.setPointer(allocator.allocate(new_size), new_size);
-            }
-            if constexpr (IS_MANAGER)   
-            {
-                allocator.release(&this->_heap);
-                allocator.request(&this->_heap, new_size);
-            }
+            FREE_HEAP;
+            ALLOCATE_HEAP(new_size);
             _allocated_size = new_size;
 
             if (temp.getPointer())
             {
-                _SubManager& subManager = _SubManager::get();
                 std::memcpy(this->_heap.getPointer(), temp.getPointer(), bytes_to_copy);
-                subManager.release(&temp);
+                subManager->release(&temp);
             }
 
             _iterator = this->_heap.getPointer();
@@ -211,17 +213,13 @@ namespace cpp2d::Memory
         ptr->setPointer(_iterator, bytes);
         _iterator = (void*)((char*)_iterator + bytes);
 
-        // if the iterator surpasses the size, we need to request a new block with a new size,
-        // relocating all the pointers
-        //assert(offset(&iterator) < _allocated_size);
         _chunks.push_back(ptr);
         _chunk_sizes.push_back(bytes);
     }
 
     // Here we defrag by moving the pointers (after the given object) 
     // back the amount of bytes the released object is
-    template<typename _Allocator, typename _SubManager, class _InstanceClass>
-    void StackManager<_Allocator, _SubManager, _InstanceClass>::release(ManagedAllocation* ptr)
+    void StackManager::release(ManagedAllocation* ptr)
     {
         assert(ptr && ptr->getPointer());
         CU32 pointer_index = std::distance(_chunks.begin(), std::find(_chunks.begin(), _chunks.end(), ptr));
@@ -233,13 +231,13 @@ namespace cpp2d::Memory
 
         if (bytes_to_copy)
         {
-            _SubManager& subManager = _SubManager::get();
+            auto* subManager = reinterpret_cast<Manager*>(_sub_manager);
 
-            ManagedAllocation temp;
-            subManager.request(&temp, bytes_to_copy);
+            ManagedAllocation temp(subManager);
+            subManager->request(&temp, bytes_to_copy);
             std::memcpy(temp.getPointer(), (void*)((U8*)ptr->getPointer() + chunk_size), bytes_to_copy);
             std::memcpy(ptr->getPointer(), temp.getPointer(), bytes_to_copy);
-            subManager.release(&temp);
+            subManager->release(&temp);
         }
 
         U32 index = pointer_index + 1;
@@ -256,14 +254,12 @@ namespace cpp2d::Memory
         ptr->setPointer(nullptr, 0);
     }
 
-    template<typename _Allocator, typename _SubManager, class _InstanceClass>
-    U32 StackManager<_Allocator, _SubManager, _InstanceClass>::bytesUsed() const
+    U32 StackManager::bytesUsed() const
     {
         return offset(_iterator);
     }
 
-    template<typename _Allocator, typename _SubManager, class _InstanceClass>
-    void StackManager<_Allocator, _SubManager, _InstanceClass>::print() const
+    void StackManager::print() const
     {
         U32 used = 0;
         for (U32 i = 0; i < _chunk_sizes.size(); i++)

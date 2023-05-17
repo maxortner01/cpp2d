@@ -6,13 +6,11 @@
 namespace cpp2d::Memory
 {
     class HeapAllocator :
-        public Allocator<HeapAllocator>
+        public Allocator
     {
+    public:
         HeapAllocator() = default;
         ~HeapAllocator() = default;
-
-    public:
-        friend class Utility::Singleton<HeapAllocator>;
 
         void* allocate(CU32&) override;
         void free(void*) override;

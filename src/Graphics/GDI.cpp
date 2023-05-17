@@ -362,9 +362,10 @@ namespace cpp2d::Graphics
         cpp2dINFO("Creating surface.");
         VkSurfaceKHR surface;
         const VkInstance instance = static_cast<VkInstance>(_handle);
-        if (glfwCreateWindowSurface(instance, (GLFWwindow*)window->getHandle(), nullptr, &surface) != VK_SUCCESS)
+        VkResult result = glfwCreateWindowSurface(instance, (GLFWwindow*)window->getHandle(), nullptr, &surface);
+        if (result != VK_SUCCESS)
         {
-            cpp2dERROR("GLFW failed to create window surface!");
+            cpp2dERROR("GLFW failed to create window surface, %i!", result);
             return nullptr;
         }
 
@@ -391,6 +392,8 @@ namespace cpp2d::Graphics
 
         if (_suitable_device_index == -1)
             cpp2dWARN("No suitable physical device found for surface.");
+        else
+            cpp2dINFO("Using the %i physical device", _suitable_device_index);
 
         _device = create_logic_device(_handle, surface, (VkPhysicalDevice*)_physical_devices.handles, _suitable_device_index); 
         if (!_device.handle)
@@ -934,12 +937,12 @@ namespace cpp2d::Graphics
         }
     }
 
-    void GDI::clearAllocations()
-    {
-        while (!_allocator_destructors.empty())
-        {
-            _allocator_destructors.top()();
-            _allocator_destructors.pop();
-        }
-    }
+    //void GDI::clearAllocations()
+    //{
+    //    while (!_allocator_destructors.empty())
+    //    {
+    //        _allocator_destructors.top()();
+    //        _allocator_destructors.pop();
+    //    }
+    //}
 }

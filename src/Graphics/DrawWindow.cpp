@@ -8,9 +8,9 @@
 
 namespace cpp2d
 {
-    DrawWindow::DrawWindow(CU32& width, CU32& height, const char* title) :
+    DrawWindow::DrawWindow(Graphics::GDI& gdi, CU32& width, CU32& height, const char* title) :
         Window(width, height, title),
-        Surface({width, height})
+        Surface(gdi, {width, height})
     {
         Window* window = (Window*)this;
 
@@ -18,12 +18,12 @@ namespace cpp2d
         glfwGetFramebufferSize((GLFWwindow*)window->getHandle(), &_width, &_height);
         setExtent({ (U32)_width, (U32)_height });
 
-        _handle = Graphics::GDI::get().getSurfaceHandle(this);
+        _handle = gdi.getSurfaceHandle(this);
 
-        Graphics::SwapChainInfo info = Graphics::GDI::get().createSwapChain(this);
+        Graphics::SwapChainInfo info = gdi.createSwapChain(this);
         _swapchain = info.handle;
 
-        create({ (U32)_width, (U32)_height }, info);
+        create(gdi, { (U32)_width, (U32)_height }, info);
         std::free(info.images);
     }
 
@@ -35,22 +35,24 @@ namespace cpp2d
         // swap buffers vulkan version
     }
 
-    Graphics::FrameObject<Graphics::FrameData> DrawWindow::beginFrame() 
+    Memory::ManagedObject<Graphics::FrameData> DrawWindow::beginFrame(Graphics::GDI& gdi, Memory::Manager* manager) 
     {
         const Graphics::Frame& frame = getFrame();
         frame.waitUntilReady();
 
-        U32 image_index = Graphics::GDI::get().getNextImage(_swapchain, getFrame());
+        U32 image_index = gdi.getNextImage(_swapchain, getFrame());
         setCurrentImageIndex(image_index);
 
-        return startRenderPass();
+        return startRenderPass(gdi, manager);
     }
 
-    void DrawWindow::endFrame(const Graphics::FrameObject<Graphics::FrameData>& commandBuffer)
+    void DrawWindow::endFrame(const Memory::ManagedObject<Graphics::FrameData>& frameData)
     {
-        endRenderPass(commandBuffer);
+        endRenderPass(frameData);
 
         const Graphics::Frame& frame = getFrame();
+        Graphics::GDI*         gdi   = frameData.object().gdi;
+
 #   ifdef GDI_VULKAN
         VkDevice device = static_cast<VkDevice>(frame.command_pool.device); 
 
@@ -73,10 +75,10 @@ namespace cpp2d
             .pResults = nullptr
         };
 
-        U32 present_index = Graphics::GDI::get().getCurrentLogicDevice().present_queue;
+        U32 present_index = gdi->getCurrentLogicDevice().present_queue;
 
         VkQueue queue;
-        Graphics::GDILogicDevice logicDevice = Graphics::GDI::get().getLogicDevice();
+        Graphics::GDILogicDevice logicDevice = gdi->getLogicDevice();
         vkGetDeviceQueue(device, present_index, 0, &queue);
 
         vkQueuePresentKHR(queue, &present_info);

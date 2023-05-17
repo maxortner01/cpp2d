@@ -6,7 +6,7 @@ namespace cpp2d::Memory
 {
     template<typename _Allocator>
     class FrameManager :
-        public Manager<FrameManager<_Allocator>>
+        public Manager
     {
         struct 
         {

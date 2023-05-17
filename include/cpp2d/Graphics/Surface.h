@@ -8,6 +8,7 @@
 namespace cpp2d::Graphics
 {
     class Surface;
+    class GDI;
 
     // This is an object that represents a singular surface to be drawn on
     // at a time. The frame has its own command pool and subjugated command buffers,
@@ -25,7 +26,7 @@ namespace cpp2d::Graphics
             FenceHandle     in_flight;
         } sync_objects;
 
-        Frame(Surface* parent);
+        Frame(Graphics::GDI& gdi, Surface* parent);
         ~Frame();
 
         void waitUntilReady() const;
@@ -34,10 +35,8 @@ namespace cpp2d::Graphics
     struct FrameData
     {
         CommandBufferHandle command_buffer;
+        Graphics::GDI*      gdi;
     };
-
-    template<typename _Object>
-    using FrameObject = Memory::ManagedObject<_Object, Memory::FrameManager<Memory::HeapAllocator>>;
 
     /**
      * @brief Encapsulates a surface to render onto.
@@ -70,18 +69,18 @@ namespace cpp2d::Graphics
         FormatHandle     _format;
 
     public:
-        Surface(const Vec2u& extent);
+        Surface(Graphics::GDI& gdi, const Vec2u& extent);
         ~Surface();
 
-        void create(const Vec2u& extent, const SwapChainInfo& swapchain);
-        void create(const Vec2u& extent);
+        void create(Graphics::GDI& gdi, const Vec2u& extent, const SwapChainInfo& swapchain);
+        void create(Graphics::GDI& gdi, const Vec2u& extent);
 
         /**
          * @brief Begins the render pass.
          * 
          * Begins render pass on the current frame. *Does not* attempt to wait on fences.
          */
-        FrameObject<FrameData> startRenderPass();
+        Memory::ManagedObject<FrameData> startRenderPass(Graphics::GDI& gdi, Memory::Manager* manager);
 
         /**
          * @brief Ends the render pass.
@@ -89,7 +88,7 @@ namespace cpp2d::Graphics
          * Ends render pass on the current frame and submits the command buffer of the current frame
          * to the graphics queue.
          */
-        void endRenderPass(const FrameObject<FrameData>& frameData);
+        void endRenderPass(const Memory::ManagedObject<FrameData>& frameData);
 
         Frame& getFrame() const;
         

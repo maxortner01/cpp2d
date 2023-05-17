@@ -318,6 +318,11 @@ GDIHandle create_instance()
     cpp2dINFO("Creating vulkan instance.");
 
     // Get the extensions needed for glfw
+    if (!glfwInit())
+    {
+        cpp2dERROR("GLFW failed to init.");
+        return nullptr;
+    }
     
     // for iterating through the extra extensions
     U32 present_index = 0;
