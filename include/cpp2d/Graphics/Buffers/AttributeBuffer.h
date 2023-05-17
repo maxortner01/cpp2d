@@ -51,6 +51,8 @@ namespace cpp2d::Buffers
 
     public:
         U32      getAllocatedSize() const;
+
+        virtual AddrDist getManagerOffset() const {} 
         virtual AddrDist offset() const = 0;
 
         virtual void setData(const void* data, CU32& bytes) = 0;
@@ -73,6 +75,7 @@ namespace cpp2d::Buffers
         TypeBuffer();
         ~TypeBuffer();
 
+        AddrDist getManagerOffset() const override;
         AddrDist offset() const override;
 
         void setData(const void* data, CU32& bytes) override;
@@ -90,6 +93,7 @@ namespace cpp2d::Buffers
         TypeBuffer();
         ~TypeBuffer();
 
+        AddrDist getManagerOffset() const override;
         AddrDist offset() const override;
 
         void setData(const void* data, CU32& bytes) override;
@@ -167,6 +171,21 @@ namespace cpp2d::Buffers
             _MemManager& manager = _MemManager::get();
             manager.release(&_data);
         }
+    }
+
+    template<typename _Object, typename _MemManager>
+    AddrDist TypeBuffer<_Object, _MemManager>::getManagerOffset() const
+    {
+        _MemManager& allocator = _MemManager::get();
+        //return allocator.offset(_data.getPointer());
+        return _MemManager::Allocator::get().offset(allocator.getHeap());
+    }
+
+    template<typename _MemManager>
+    AddrDist TypeBuffer<U32, _MemManager>::getManagerOffset() const
+    {
+        _MemManager& allocator = _MemManager::get();
+        return _MemManager::Allocator::get().offset(allocator.getHeap());
     }
     
     template<typename _Object, typename _MemManager>
