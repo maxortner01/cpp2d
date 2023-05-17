@@ -178,12 +178,12 @@ namespace cpp2d::Buffers
     template<typename _Object>
     AddrDist TypeBuffer<_Object>::offset() const
     {
-        return getManagerOffset() + _manager->offset(_data.getPointer());
+        return _manager->offset(_data.getPointer());
     }
 
     AddrDist TypeBuffer<U32>::offset() const
     {
-        return getManagerOffset() + _manager->offset(_data.getPointer());
+        return _manager->offset(_data.getPointer());
     }
     
     template<typename _Object>

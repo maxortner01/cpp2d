@@ -87,6 +87,7 @@ namespace cpp2d::Memory
 
     void StackManager::updateAllocations(void* newptr, U32 size)
     {
+        std::cout << "updating\n";
         _iterator = newptr;
         for (U32 i = 0; i < _chunks.size(); i++)
         {
