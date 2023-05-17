@@ -117,9 +117,9 @@ namespace cpp2d::Buffers
         auto* data = extractData(ptr);
 
 #ifdef GDI_VULKAN
+        VkBuffer      buffer     = static_cast<VkBuffer>     (data->buffer);
         VmaAllocator  allocator  = static_cast<VmaAllocator> (_allocator);
         VmaAllocation allocation = static_cast<VmaAllocation>(data->allocation);
-        VkBuffer      buffer     = static_cast<VkBuffer>(data->buffer);
         vmaUnmapMemory(allocator, allocation);
         vmaDestroyBuffer(allocator, buffer, allocation);
 #endif

@@ -21,7 +21,7 @@ namespace cpp2d::Buffers
         Graphics::AllocationHandle allocation;
     };
 
-    class GraphicsAllocator :
+    class CPP2D_DLL GraphicsAllocator :
         public Memory::Allocator<GraphicsAllocator>
     {   
         Graphics::AllocatorHandle _allocator;
@@ -43,7 +43,7 @@ namespace cpp2d::Buffers
 
     //template<typename T>
     //using GraphicsStackManager = Memory::StackManager<GraphicsAllocator, Memory::HeapManager, T>;
-    using BaseGraphicsStackManager = Memory::StackManager<GraphicsAllocator, Memory::FrameManager<Memory::HeapAllocator>>;
+    using BaseGraphicsStackManager = Memory::StackManager<GraphicsAllocator, Memory::FrameManager<Memory::HeapAllocator>, Memory::BaseStack>;
 
     template<typename T>
     using GraphicsStackManager = Memory::StackManager<BaseGraphicsStackManager, Memory::FrameManager<Memory::HeapAllocator>, T>;

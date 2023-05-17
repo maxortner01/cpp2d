@@ -8,7 +8,7 @@ namespace cpp2d::Memory
     // There will be a singletone instance for every
     // type of base class put here
     template<typename _ChildClass>
-    struct Allocator :
+    struct CPP2D_DLL Allocator :
         public Utility::Singleton<_ChildClass>
     {
         virtual void* allocate(CU32&) = 0;

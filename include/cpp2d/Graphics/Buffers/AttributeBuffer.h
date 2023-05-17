@@ -52,7 +52,7 @@ namespace cpp2d::Buffers
     public:
         U32      getAllocatedSize() const;
 
-        virtual AddrDist getManagerOffset() const {} 
+        virtual AddrDist getManagerOffset() const { return 0; }
         virtual AddrDist offset() const = 0;
 
         virtual void setData(const void* data, CU32& bytes) = 0;
