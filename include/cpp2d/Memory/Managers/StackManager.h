@@ -13,6 +13,7 @@ namespace cpp2d::Memory
     {
         void* const _sub_manager;
 
+        U32   _padding;
         U32   _alignment;
         U32   _allocated_size;
         void* _iterator;
@@ -95,6 +96,7 @@ namespace cpp2d::Memory
             case MemoryOwner::Manager:
             {
                 auto* manager = reinterpret_cast<Manager*>(_memory_owner);
+                if (!_alignment) break;
                 CU32 buffer_offset = manager->getHeapOffset() + manager->offset(this->_heap.getPointer());
                 CU32 offset_mod    = buffer_offset % _alignment;
                 if (offset_mod > 0) offset = _alignment - offset_mod;
@@ -108,6 +110,8 @@ namespace cpp2d::Memory
             _chunks[i]->setPointer(_iterator, _chunk_sizes[i]);
             _iterator = (void*)((U8*)_iterator + _chunk_sizes[i]);
         }
+
+        _padding = offset;
         _allocated_size = size;
     }
 
@@ -136,6 +140,7 @@ namespace cpp2d::Memory
             {
                 auto* manager = reinterpret_cast<Manager*>(_memory_owner);
                 manager->request(&this->_heap, SIZE);
+                if (!alignment) break;
                 CU32 buffer_offset = manager->getHeapOffset() + manager->offset(this->_heap.getPointer());
                 CU32 offset_mod    = buffer_offset % alignment;
                 if (offset_mod > 0) offset = alignment - offset_mod;
@@ -145,6 +150,7 @@ namespace cpp2d::Memory
               
         this->_heap.setOnChanged(StackManager::test);
 
+        _padding = offset;
         _allocated_size = SIZE;
         _iterator = (void*)((U8*)this->_heap.getPointer() + offset);
     }
@@ -178,7 +184,7 @@ namespace cpp2d::Memory
 
     AddrDist StackManager::offset(const void* ptr) const
     {
-        return (U8*)ptr - (U8*)(this->_heap.getPointer());
+        return (U8*)ptr - (U8*)(this->_heap.getPointer()) + _padding;
     }
 
     // things aren't working...
