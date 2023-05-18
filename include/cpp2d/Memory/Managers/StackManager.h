@@ -13,6 +13,7 @@ namespace cpp2d::Memory
     {
         void* const _sub_manager;
 
+        U32   _alignment;
         U32   _allocated_size;
         void* _iterator;
 
@@ -20,7 +21,7 @@ namespace cpp2d::Memory
         std::vector<ManagedAllocation*> _chunks;
 
     public:
-        StackManager(void* memoryOwner, void* subManager, const MemoryOwner& ownerType);
+        StackManager(void* memoryOwner, void* subManager, const MemoryOwner& ownerType, CU32& alignment = 0);
         ~StackManager();
 
         AddrDist getHeapOffset() const;
@@ -87,8 +88,21 @@ namespace cpp2d::Memory
 
     void StackManager::updateAllocations(void* newptr, U32 size)
     {
-        std::cout << "updating\n";
-        _iterator = newptr;
+        U32 offset = 0; 
+        switch (_owner_type)
+        {
+            case MemoryOwner::Allocator: break;
+            case MemoryOwner::Manager:
+            {
+                auto* manager = reinterpret_cast<Manager*>(_memory_owner);
+                CU32 buffer_offset = manager->getHeapOffset() + manager->offset(this->_heap.getPointer());
+                CU32 offset_mod    = buffer_offset % _alignment;
+                if (offset_mod > 0) offset = _alignment - offset_mod;
+                break;
+            }
+        }
+
+        _iterator = (void*)((U8*)newptr + offset);
         for (U32 i = 0; i < _chunks.size(); i++)
         {
             _chunks[i]->setPointer(_iterator, _chunk_sizes[i]);
@@ -103,32 +117,36 @@ namespace cpp2d::Memory
         stack_instance->updateAllocations(newPtr, size);
     }
 
-    StackManager::StackManager(void* memoryOwner, void* subManager, const MemoryOwner& ownerType) :
+    StackManager::StackManager(void* memoryOwner, void* subManager, const MemoryOwner& ownerType, CU32& alignment) :
         Manager(memoryOwner, ownerType),
-        _sub_manager(subManager)
+        _sub_manager(subManager),
+        _alignment(alignment)
     {
-          
+        U32 offset = 0; 
         switch (_owner_type)
         {
-        case MemoryOwner::Allocator:
-        {
-            auto* allocator = reinterpret_cast<Allocator*>(_memory_owner);
-            this->_heap.setPointer(allocator->allocate(SIZE), SIZE);
-            break;
-        }
+            case MemoryOwner::Allocator:
+            {
+                auto* allocator = reinterpret_cast<Allocator*>(_memory_owner);
+                this->_heap.setPointer(allocator->allocate(SIZE), SIZE);
+                break;
+            }
 
-        case MemoryOwner::Manager:
-        {
-            auto* manager = reinterpret_cast<Manager*>(_memory_owner);
-            manager->request(&this->_heap, SIZE);
-            break;
-        }
+            case MemoryOwner::Manager:
+            {
+                auto* manager = reinterpret_cast<Manager*>(_memory_owner);
+                manager->request(&this->_heap, SIZE);
+                CU32 buffer_offset = manager->getHeapOffset() + manager->offset(this->_heap.getPointer());
+                CU32 offset_mod    = buffer_offset % alignment;
+                if (offset_mod > 0) offset = alignment - offset_mod;
+                break;
+            }
         }
               
         this->_heap.setOnChanged(StackManager::test);
 
         _allocated_size = SIZE;
-        _iterator = this->_heap.getPointer();
+        _iterator = (void*)((U8*)this->_heap.getPointer() + offset);
     }
 
     StackManager::~StackManager()
@@ -145,7 +163,10 @@ namespace cpp2d::Memory
         switch (_owner_type)
         {
             case MemoryOwner::Allocator:
-                return 0;
+                {
+                    auto* allocator = reinterpret_cast<Allocator*>(_memory_owner);
+                    return allocator->headerSize();   
+                }
                 
             case MemoryOwner::Manager:
                 {
