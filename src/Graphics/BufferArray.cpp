@@ -59,16 +59,16 @@ namespace cpp2d
         {
             if (_types[i] == BufferType::Index)
             {
-                std::cout << "Index\n";
+                //std::cout << "Index\n";
                 index_offset = _buffers[i]->getManagerOffset();// + Buffers::GraphicsAllocator::HeaderBytes;
-                std::cout << "done\n";
+                //std::cout << "done\n";
             }
 
             if (_types[i] == BufferType::Vertex)
             {
-                std::cout << "Vertex\n";
+                //std::cout << "Vertex\n";
                 vertex_offset = _buffers[i]->getManagerOffset();// + Buffers::GraphicsAllocator::HeaderBytes;
-                std::cout << "done\n";
+                //std::cout << "done\n";
             }
         }
 
@@ -179,7 +179,7 @@ namespace cpp2d
         std::free(vertices);*/
 
         //vkCmdDraw(command_buffer, vertex_count, 1, 0, 0);
-        vkCmdDrawIndexed(command_buffer, index_count, 1, 0, 0, 0);
+        vkCmdDrawIndexed(command_buffer, index_count, 1, start_index, start_vertex, 0);
 #   endif
     }
 }

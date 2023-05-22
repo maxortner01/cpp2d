@@ -227,7 +227,7 @@ namespace cpp2d::Memory
 
             FREE_HEAP;
             ALLOCATE_HEAP(new_size);
-            _allocated_size = new_size;
+            //_allocated_size = new_size;
 
             if (temp.getPointer())
             {
@@ -235,7 +235,8 @@ namespace cpp2d::Memory
                 subManager->release(&temp);
             }
 
-            _iterator = this->_heap.getPointer();
+            /*
+            _iterator = this->_heap.getPointer() + _paddo;
             for (U32 i = 0; i < _chunks.size(); i++)
             {
                 ManagedAllocation* chunk = _chunks[i];
@@ -243,7 +244,7 @@ namespace cpp2d::Memory
 
                 chunk->setPointer(_iterator, size);
                 _iterator = (void*)((U8*)_iterator + size);
-            }
+            }*/
         }
 
         ptr->setPointer(_iterator, bytes);

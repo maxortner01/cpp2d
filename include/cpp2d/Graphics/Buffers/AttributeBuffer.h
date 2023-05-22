@@ -167,13 +167,13 @@ namespace cpp2d::Buffers
     {
         //return allocator.offset(_data.getPointer());
         //return _MemManager::Allocator::get().offset(allocator.getHeap()); // <-------------------------
-        std::cout << _manager->getHeapOffset() << "\n";
+        //std::cout << _manager->getHeapOffset() << "\n";
         return _manager->getHeapOffset();
     }
 
     AddrDist TypeBuffer<U32>::getManagerOffset() const
     {
-        std::cout << _manager->getHeapOffset() << "\n";
+        //std::cout << _manager->getHeapOffset() << "\n";
         return _manager->getHeapOffset();
     }
     
