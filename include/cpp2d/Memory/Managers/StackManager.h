@@ -92,26 +92,30 @@ namespace cpp2d::Memory
         U32 offset = 0; 
         switch (_owner_type)
         {
-            case MemoryOwner::Allocator: break;
+            case MemoryOwner::Allocator:
+            {
+                auto* allocator = reinterpret_cast<Allocator*>(_memory_owner);
+                offset = allocator->headerSize();
+                break;
+            }
             case MemoryOwner::Manager:
             {
                 auto* manager = reinterpret_cast<Manager*>(_memory_owner);
                 if (!_alignment) break;
-                CU32 buffer_offset = manager->getHeapOffset() + manager->offset(this->_heap.getPointer());
-                CU32 offset_mod    = buffer_offset % _alignment;
-                if (offset_mod > 0) offset = _alignment - offset_mod;
+                offset = manager->getHeapOffset() + manager->offset(this->_heap.getPointer());
                 break;
             }
         }
 
-        _iterator = (void*)((U8*)newptr + offset);
+        _padding = (_alignment?_alignment - (offset % _alignment):0);
+
+        _iterator = (void*)((U8*)newptr + _padding);
         for (U32 i = 0; i < _chunks.size(); i++)
         {
             _chunks[i]->setPointer(_iterator, _chunk_sizes[i]);
             _iterator = (void*)((U8*)_iterator + _chunk_sizes[i]);
         }
 
-        _padding = offset;
         _allocated_size = size;
     }
 
@@ -133,6 +137,7 @@ namespace cpp2d::Memory
             {
                 auto* allocator = reinterpret_cast<Allocator*>(_memory_owner);
                 this->_heap.setPointer(allocator->allocate(SIZE), SIZE);
+                offset = allocator->headerSize();
                 break;
             }
 
@@ -141,18 +146,16 @@ namespace cpp2d::Memory
                 auto* manager = reinterpret_cast<Manager*>(_memory_owner);
                 manager->request(&this->_heap, SIZE);
                 if (!alignment) break;
-                CU32 buffer_offset = manager->getHeapOffset() + manager->offset(this->_heap.getPointer());
-                CU32 offset_mod    = buffer_offset % alignment;
-                if (offset_mod > 0) offset = alignment - offset_mod;
+                offset = manager->getHeapOffset() + manager->offset(this->_heap.getPointer());
                 break;
             }
         }
               
         this->_heap.setOnChanged(StackManager::test);
-
-        _padding = offset;
+        
+        _padding = (_alignment?_alignment - (offset % _alignment):0);
         _allocated_size = SIZE;
-        _iterator = (void*)((U8*)this->_heap.getPointer() + offset);
+        _iterator = (void*)((U8*)this->_heap.getPointer() + _padding);
     }
 
     StackManager::~StackManager()
@@ -184,7 +187,7 @@ namespace cpp2d::Memory
 
     AddrDist StackManager::offset(const void* ptr) const
     {
-        return (U8*)ptr - (U8*)(this->_heap.getPointer()) + _padding;
+        return (U8*)ptr - (U8*)(this->_heap.getPointer()) - _padding;
     }
 
     // things aren't working...

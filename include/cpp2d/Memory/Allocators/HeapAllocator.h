@@ -23,6 +23,6 @@ namespace cpp2d::Memory
 
     void HeapAllocator::free(void* ptr) 
     {
-        std::free(ptr);
+        if (ptr) std::free(ptr);
     }
 }

@@ -58,10 +58,18 @@ namespace cpp2d
         for (U32 i = 0; i < _buffers.size(); i++)
         {
             if (_types[i] == BufferType::Index)
-                index_offset = _buffers[i]->getManagerOffset() + Buffers::GraphicsAllocator::HeaderBytes;
+            {
+                std::cout << "Index\n";
+                index_offset = _buffers[i]->getManagerOffset();// + Buffers::GraphicsAllocator::HeaderBytes;
+                std::cout << "done\n";
+            }
 
             if (_types[i] == BufferType::Vertex)
-                vertex_offset = _buffers[i]->getManagerOffset() + Buffers::GraphicsAllocator::HeaderBytes;
+            {
+                std::cout << "Vertex\n";
+                vertex_offset = _buffers[i]->getManagerOffset();// + Buffers::GraphicsAllocator::HeaderBytes;
+                std::cout << "done\n";
+            }
         }
 
         // Not sure how to remove binding here unless each buffer type has its own allocation...
