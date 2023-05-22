@@ -179,7 +179,7 @@ namespace cpp2d
         std::free(vertices);*/
 
         //vkCmdDraw(command_buffer, vertex_count, 1, 0, 0);
-        vkCmdDrawIndexed(command_buffer, index_count, 1, start_index, start_vertex, 0);
+        vkCmdDrawIndexed(command_buffer, index_count, 1, 0, 0, 0);
 #   endif
     }
 }
