@@ -34,7 +34,7 @@ namespace cpp2d
 
         Buffers::AttributeFrame getAttributeFrame() const;
 
-        void bind(const Memory::ManagedObject<Graphics::FrameData>& frameData, Memory::StackManager* baseStackManager);
+        void bind(const Memory::ManagedObject<Graphics::FrameData>& frameData, Memory::Manager* baseStackManager);
 
         void draw(const Memory::ManagedObject<Graphics::FrameData>& frameData);
 

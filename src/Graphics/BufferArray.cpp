@@ -47,7 +47,7 @@ namespace cpp2d
         return frame;
     }
 
-    void BufferArray::bind(const Memory::ManagedObject<Graphics::FrameData>& frameData, Memory::StackManager* baseStackManager)
+    void BufferArray::bind(const Memory::ManagedObject<Graphics::FrameData>& frameData, Memory::Manager* baseStackManager)
     {
         auto attributes = getAttributeFrame();
         auto command_buffer = static_cast<VkCommandBuffer>(frameData.object().command_buffer);
@@ -82,7 +82,7 @@ namespace cpp2d
 
         // Pull the buffer/allocation info from the heap for binding
         const void* _heap   = baseStackManager->getHeap();
-        auto* allocatordata = reinterpret_cast<Memory::AllocatorHeader<Buffers::AllocationHeader>*>(baseStackManager->getAllocator())->extractData(_heap);
+        auto* allocatordata = static_cast<Memory::AllocatorHeader<Buffers::AllocationHeader>*>(baseStackManager->getAllocator())->extractData(_heap);
         auto buffer = static_cast<VkBuffer>(allocatordata->data.buffer);
         if (index_offset != 0)
         {

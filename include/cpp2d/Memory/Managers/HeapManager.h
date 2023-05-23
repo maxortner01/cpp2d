@@ -5,33 +5,53 @@
 
 namespace cpp2d::Memory
 {
-    class HeapManager :
+    template<typename _Allocator>
+    class FreeManager :
         public Memory::Manager
     {
-        HeapAllocator* const _allocator;
+        std::vector<ManagedAllocation*> allocations;
+        _Allocator* const _allocator;
 
     public:
-        HeapManager(HeapAllocator* allocator);
+        FreeManager(_Allocator* allocator);
+        ~FreeManager();
 
         void request(ManagedAllocation* ptr, CU32& bytes) override;
         void release(ManagedAllocation* ptr) override;
     };
 
-    HeapManager::HeapManager(HeapAllocator* allocator) : 
+    template<typename _Allocator>
+    FreeManager<_Allocator>::FreeManager(_Allocator* allocator) : 
         Manager(allocator, MemoryOwner::Allocator),
         _allocator(allocator)
     {   }
 
-    void HeapManager::request(ManagedAllocation* ptr, CU32& bytes)
+    template<typename _Allocator>
+    FreeManager<_Allocator>::~FreeManager()
+    {
+        for (auto* allocation : allocations) release(allocation);
+    }
+
+    template<typename _Allocator>
+    void FreeManager<_Allocator>::request(ManagedAllocation* ptr, CU32& bytes)
     {
         ptr->setPointer(
             _allocator->allocate(bytes), bytes
         );
+
+        allocations.push_back(ptr);
     }
 
-    void HeapManager::release(ManagedAllocation* ptr) 
+    template<typename _Allocator>
+    void FreeManager<_Allocator>::release(ManagedAllocation* ptr) 
     {
+        auto it = std::find(allocations.begin(), allocations.end(), ptr);
+        assert(it != allocations.end());
+        
+        allocations.erase(it);
         _allocator->free(ptr->getPointer());
         ptr->setPointer(nullptr, 0);
     }
+
+    typedef FreeManager<HeapAllocator> HeapManager;
 }

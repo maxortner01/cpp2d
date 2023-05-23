@@ -43,6 +43,8 @@ namespace cpp2d::Buffers
         void free(void* ptr) override;
     };
 
+    typedef Memory::FreeManager<GraphicsAllocator> GraphicsManager;
+
     //template<typename T>
     //using GraphicsStackManager = Memory::StackManager<GraphicsAllocator, Memory::HeapManager, T>;
     //using BaseGraphicsStackManager = Memory::StackManager<GraphicsAllocator, Memory::FrameManager<Memory::HeapAllocator>, Memory::BaseStack>;
