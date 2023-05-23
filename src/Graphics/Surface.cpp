@@ -74,7 +74,7 @@ namespace cpp2d::Graphics
         for (U32 i = 0; i < swapchain.image_count; i++)
         {
             if (i < _OVERLAP)
-                new(reinterpret_cast<void*>(&_frames[i])) Frame(gdi, this);
+                new(static_cast<void*>(&_frames[i])) Frame(gdi, this);
 
             _framebuffers[i].image = swapchain.images[i];
             _framebuffers[i].framebuffer = gdi.createFramebuffer(swapchain.images[i].image_view, this, this);

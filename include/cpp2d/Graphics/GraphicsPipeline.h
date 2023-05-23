@@ -1,6 +1,5 @@
 #pragma once
 
-#include "./Buffers/AttributeBuffer.h"
 #include "../Utility.h"
 #include <initializer_list>
 
@@ -22,6 +21,27 @@ namespace Graphics
         Failed
     };
 
+    struct Binding
+    {
+        U32 index;
+        U32 stride;
+    };
+
+    struct Attribute
+    {
+        U32 binding;
+        U32 location;
+        U32 element_count;
+        U32 offset;
+    };
+
+    struct AttributeFrame
+    {
+        std::vector<Binding> bindings;
+        std::vector<Attribute> attributes;
+    };
+
+
     class CPP2D_DLL GraphicsPipeline :
         public Utility::State<GraphicsPipelineState>,
         public Utility::NoCopy
@@ -31,13 +51,13 @@ namespace Graphics
         Graphics::GDIPipeline _pipeline;
 
         ScopedData<Shader*> _shaders;
-        Buffers::AttributeFrame _attributes;
+        AttributeFrame _attributes;
         Graphics::Surface* _surface;
 
         void _set_push_constants(const Memory::ManagedObject<Graphics::FrameData>& frame_data, const void* data);
 
     public:
-        GraphicsPipeline(std::initializer_list<ShaderType> shaders, Graphics::Surface& surface, const Buffers::AttributeFrame& attributes);
+        GraphicsPipeline(std::initializer_list<ShaderType> shaders, Graphics::Surface& surface, const AttributeFrame& attributes);
         ~GraphicsPipeline();
 
         Shader& getShader(const ShaderType& type);

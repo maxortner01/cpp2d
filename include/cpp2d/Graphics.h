@@ -7,6 +7,6 @@
 #include "./Graphics/Shader.h"
 #include "./Graphics/GraphicsPipeline.h"
 #include "./Graphics/GDILifetime.h"
-#include "./Graphics/BufferArray.h"
+//#include "./Graphics/BufferArray.h"
 
-#include "./Graphics/Buffers.h"
+//#include "./Graphics/Buffers.h"

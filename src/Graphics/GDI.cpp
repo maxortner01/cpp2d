@@ -595,7 +595,7 @@ namespace cpp2d::Graphics
         return shader;
     }
 
-    GDIPipeline GDI::createPipeline(const ScopedData<Shader*>& shaders, Surface* surface, const Buffers::AttributeFrame& frame, U32 byteSize)
+    GDIPipeline GDI::createPipeline(const ScopedData<Shader*>& shaders, Surface* surface, const AttributeFrame& frame, U32 byteSize)
     {
         ScopedData<VkPipelineShaderStageCreateInfo> create_infos(shaders.size());
         for (U32 i = 0; i < create_infos.size(); i++)

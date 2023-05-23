@@ -11,6 +11,7 @@ namespace cpp2d::Memory
     {
         std::vector<ManagedAllocation*> allocations;
         _Allocator* const _allocator;
+        U32 _used_allocations;
 
     public:
         FreeManager(_Allocator* allocator);
@@ -23,7 +24,8 @@ namespace cpp2d::Memory
     template<typename _Allocator>
     FreeManager<_Allocator>::FreeManager(_Allocator* allocator) : 
         Manager(allocator, MemoryOwner::Allocator),
-        _allocator(allocator)
+        _allocator(allocator),
+        _used_allocations(0)
     {   }
 
     template<typename _Allocator>
@@ -35,6 +37,7 @@ namespace cpp2d::Memory
     template<typename _Allocator>
     void FreeManager<_Allocator>::request(ManagedAllocation* ptr, CU32& bytes)
     {
+        _used_allocations += bytes;
         ptr->setPointer(
             _allocator->allocate(bytes), bytes
         );
@@ -48,6 +51,7 @@ namespace cpp2d::Memory
         auto it = std::find(allocations.begin(), allocations.end(), ptr);
         assert(it != allocations.end());
         
+        _used_allocations -= ptr->getSize();
         allocations.erase(it);
         _allocator->free(ptr->getPointer());
         ptr->setPointer(nullptr, 0);

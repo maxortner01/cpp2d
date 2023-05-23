@@ -30,6 +30,6 @@
 #include "./Graphics/GraphicsPipeline.cpp"
 #include "./Graphics/GDILifetime.cpp"
 //#include "./Graphics/VertexBuffer.cpp"
-#include "./Graphics/BufferArray.cpp"
+//#include "./Graphics/BufferArray.cpp"
 
-#include "./Graphics/Buffers.cpp"
+//#include "./Graphics/Buffers.cpp"

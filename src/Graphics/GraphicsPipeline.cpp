@@ -17,7 +17,7 @@ namespace cpp2d
         vkCmdPushConstants(command_buffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, _push_constants_size, data);
     }
 
-    GraphicsPipeline::GraphicsPipeline(std::initializer_list<ShaderType> shaders, Graphics::Surface& surface, const Buffers::AttributeFrame& attributes) :
+    GraphicsPipeline::GraphicsPipeline(std::initializer_list<ShaderType> shaders, Graphics::Surface& surface, const AttributeFrame& attributes) :
         Utility::State<GraphicsPipelineState>(GraphicsPipelineState::NotBuilt),
         _attributes(attributes),
         _surface(&surface),

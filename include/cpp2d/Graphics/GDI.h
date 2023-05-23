@@ -5,12 +5,12 @@
 #include "../Util.h"
 #include "../Utility.h"
 #include "GDILifetime.h"
-#include "./Buffers/AttributeBuffer.h"
 #include "../Memory.h"
 
 namespace cpp2d
 {
     class Shader;
+    struct AttributeFrame;
 }
 
 namespace cpp2d::Graphics
@@ -46,13 +46,11 @@ namespace cpp2d::Graphics
         // Currently, we only keep one logic device,
         // but in the future if we want more, we can keep
         // a map that lets us take device handles to their 
-        // logid device struct
+        // logic device struct
         GDIHandle       _handle;
         GDIDebugHandle  _debug;
         GDILogicDevice  _device;
         I32 _suitable_device_index;
-
-        std::stack<void (*)(void)> _allocator_destructors;
 
         void _init();
         void _delete();
@@ -83,19 +81,8 @@ namespace cpp2d::Graphics
         FenceHandle     createFence(GDILifetime* lifetime = nullptr);
 
         ShaderHandle createShader(const U32* data, U32 count, GDILifetime* lifetime = nullptr);
-        GDIPipeline  createPipeline(const ScopedData<Shader*>& shaders, Surface* surface, const Buffers::AttributeFrame& frame, U32 byteSize);
+        GDIPipeline  createPipeline(const ScopedData<Shader*>& shaders, Surface* surface, const AttributeFrame& frame, U32 byteSize);
         CommandPool  createCommandPool(GDILifetime* lifetime = nullptr);
         CommandBufferHandle createCommandBuffer(const CommandPoolHandle& commandPool);
-
-        //void clearAllocations();
-
-        //template<typename _Allocator>
-        //void registerAllocator(_Allocator* allocator);
     };
-
-    //template<typename _Allocator>
-    //void GDI::registerAllocator(_Allocator* allocator)
-    //{
-    //    _allocator_destructors.push(allocator->~_Allocator);
-    //}
 }
